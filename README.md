@@ -1,2 +1,5 @@
-# dream-forge-labs-website
-Public repository for the website for the Dream Forge Labs project, engineering the future of visual storytelling.
+# Dream Forge Labs Website
+Website for the Dream Forge project, engineering the future of visual storytelling.
+
+# Endpoint
+https://dreamforgelabs.work/
