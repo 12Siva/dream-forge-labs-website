@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Forge Labs - Filming Technology Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind to use the 'class' strategy for dark mode
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles are for light mode */
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: #F9FAFB; /* Gray 50 */
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .section-title {
+            @apply text-3xl md:text-4xl font-bold text-center mb-12 relative;
+        }
+        .section-title::after {
+            content: '';
+            @apply block w-20 h-1 mx-auto mt-4 rounded;
+            background-color: #F97316; /* Orange 500 */
+        }
+        ::selection {
+            background-color: #F97316;
+            color: #ffffff;
+        }
+
+        /* Dark Mode styles */
+        .dark body {
+            background: #111827; /* Gray 900 */
+        }
+        .dark ::selection {
+            color: #111827;
+        }
+    </style>
+    <script>
+        // Set theme on initial load to prevent FOUC
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+    </script>
+</head>
+<body class="antialiased text-gray-800 dark:text-gray-300">
+
+    <!-- Header -->
+    <header id="header" class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-6 py-4">
+            <nav class="flex items-center justify-between">
+                <a href="#" class="text-2xl font-bold text-gray-900 dark:text-gray-50 flex items-center">
+                    <i class="fas fa-film mr-2 text-[#F97316]"></i> Dream Forge Labs
+                </a>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="#about" class="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors">About</a>
+                    </div>
+                     <!-- Theme Toggle Button -->
+                    <button id="theme-toggle" class="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <i class="fas fa-moon text-xl hidden" id="theme-toggle-dark-icon"></i>
+                        <i class="fas fa-sun text-xl hidden" id="theme-toggle-light-icon"></i>
+                    </button>
+                    <button id="mobile-menu-button" class="md:hidden text-gray-800 dark:text-gray-200 text-2xl">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </nav>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 bg-white dark:bg-gray-900">
+            <a href="#about" class="block py-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316]">About</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="min-h-screen flex items-center pt-24 md:pt-0">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 dark:text-gray-50 leading-tight mb-6">
+                    Engineering the Future of Visual Storytelling.
+                </h1>
+                <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-10">
+                    We provide cutting-edge technology services and custom solutions for filmmakers and content creators who dare to innovate.
+                </p>
+                <a href="#about" class="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30">
+                    Learn More
+                </a>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="py-20 md:py-28 bg-white dark:bg-[#1F2937]">
+            <div class="container mx-auto px-6">
+                <div class="max-w-3xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-gray-50 relative text-center">About Dream Forge Labs</h2>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
+                        Founded by a team of filmmakers and engineers, Dream Forge Labs was born from a passion for pushing creative boundaries through technology. We saw the gap between ambitious creative vision and the practical tools available on set.
+                    </p>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                        Our mission is to empower creators by making complex technology accessible and reliable. We're not just service providers; we're your technical partners, dedicated to bringing your most challenging ideas to life.
+                    </p>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <p class="text-gray-500 dark:text-gray-400">&copy; 2025 Dream Forge Labs. All rights reserved.</p>
+                <div class="flex mt-4 md:mt-0 space-x-6">
+                    <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors"><i class="fab fa-youtube text-xl"></i></a>
+                    <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors"><i class="fab fa-instagram text-xl"></i></a>
+                    <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors"><i class="fab fa-linkedin-in text-xl"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when a link is clicked
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // Header scroll effect
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('shadow-lg', 'shadow-black/5');
+                header.classList.add('dark:shadow-black/20');
+            } else {
+                header.classList.remove('shadow-lg', 'shadow-black/5');
+                header.classList.remove('dark:shadow-black/20');
+            }
+        });
+
+        // Theme Toggle
+        const themeToggleButton = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        const setTheme = (isDark) => {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                lightIcon.classList.remove('hidden'); // In dark mode, show the sun icon
+                darkIcon.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                darkIcon.classList.remove('hidden'); // In light mode, show the moon icon
+                lightIcon.classList.add('hidden');
+            }
+        };
+
+        // Set initial state based on saved theme or system preference
+        const isCurrentlyDark = document.documentElement.classList.contains('dark');
+        setTheme(isCurrentlyDark);
+
+        // Listen for button clicks to toggle theme
+        themeToggleButton.addEventListener('click', () => {
+            setTheme(!document.documentElement.classList.contains('dark'));
+        });
+    </script>
+
+</body>
+</html>
