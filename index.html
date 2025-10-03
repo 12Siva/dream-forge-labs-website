@@ -62,8 +62,9 @@
                 <div class="flex items-center space-x-4">
                     <div class="hidden md:flex items-center space-x-8">
                         <a href="#about" class="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors">About</a>
+                        <a href="#storyweaver" class="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors">StoryWeaver</a>
                     </div>
-                     <!-- Theme Toggle Button -->
+                       <!-- Theme Toggle Button -->
                     <button id="theme-toggle" class="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                         <i class="fas fa-moon text-xl hidden" id="theme-toggle-dark-icon"></i>
                         <i class="fas fa-sun text-xl hidden" id="theme-toggle-light-icon"></i>
@@ -77,6 +78,7 @@
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 bg-white dark:bg-gray-900">
             <a href="#about" class="block py-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316]">About</a>
+            <a href="#storyweaver" class="block py-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316]">StoryWeaver</a>
         </div>
     </header>
 
@@ -101,16 +103,21 @@
         <section id="about" class="py-20 md:py-28 bg-white dark:bg-[#1F2937]">
             <div class="container mx-auto px-6">
                 <div class="max-w-3xl mx-auto">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-gray-50 relative text-center">About Dream Forge Labs</h2>
-                    <p class="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
+                    <h2 class="section-title text-gray-900 dark:text-gray-50">About Dream Forge Labs</h2>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed text-center">
                         Founded by a team of filmmakers and engineers, Dream Forge Labs was born from a passion for pushing creative boundaries through technology. We saw the gap between ambitious creative vision and the practical tools available on set.
                     </p>
-                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed text-center">
                         Our mission is to empower creators by making complex technology accessible and reliable. We're not just service providers; we're your technical partners, dedicated to bringing your most challenging ideas to life.
                     </p>
                 </div>
             </div>
         </section>
+        
+        <!-- StoryWeaver Section Placeholder -->
+        <div id="storyweaver-placeholder">
+            <!-- StoryWeaver content will be loaded here by JavaScript -->
+        </div>
         
     </main>
 
@@ -129,6 +136,32 @@
     </footer>
 
     <script>
+        // --- Component Loader ---
+        // This script fetches HTML components and injects them into placeholder elements.
+        document.addEventListener('DOMContentLoaded', () => {
+            // Added a cache-busting parameter to the fetch request.
+            const cacheBuster = `?v=${new Date().getTime()}`;
+            fetch('storyweaver.html' + cacheBuster)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('storyweaver-placeholder').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error fetching component:', error);
+                    // Display an error message in the placeholder
+                    document.getElementById('storyweaver-placeholder').innerHTML = 
+                        `<p class="text-center text-red-500 py-20">Error: Could not load StoryWeaver section.</p>`;
+                });
+        });
+
+
+        // --- Page-specific Scripts ---
+
         // Mobile menu toggle
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
@@ -186,3 +219,4 @@
 
 </body>
 </html>
+
