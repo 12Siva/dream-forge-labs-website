@@ -69,7 +69,7 @@
         </div>
 
         <div class="max-w-2xl mx-auto mt-12 bg-white dark:bg-gray-900/50 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800">
-            <form id="story-form">
+            <form id="story-form" autocomplete="off">
                 <div class="space-y-6">
                     <!-- File Upload -->
                     <div>
@@ -111,6 +111,14 @@
     </main>
 
     <script>
+        // --- FORM RESET ON PAGE LOAD (IMPROVED) ---
+        window.addEventListener('pageshow', () => {
+            const form = document.getElementById('story-form');
+            if (form) {
+                form.reset();
+            }
+        });
+
         // --- API Configuration ---
         // IMPORTANT: Replace this placeholder URL with your actual API Gateway Invoke URL.
         const API_BASE_URL = 'https://507041jst3.execute-api.us-east-2.amazonaws.com'; // Use the single Invoke URL from your "Story Weaver Upload API"
@@ -169,11 +177,14 @@
             }
         });
 
-        // --- Helper Functions ---
+        // --- Helper Functions (IMPROVED WITH CORS MODE) ---
 
         async function getUploadUrl(fileName) {
-            const response = await fetch(`${API_BASE_URL}/generate-upload-url?fileName=${encodeURIComponent(fileName)}`);
-            if (!response.ok) throw new Error('Could not get upload URL. Check API_BASE_URL and CORS settings.');
+            const response = await fetch(`${API_BASE_URL}/generate-upload-url?fileName=${encodeURIComponent(fileName)}`, {
+                method: 'GET',
+                mode: 'cors'
+            });
+            if (!response.ok) throw new Error('Could not get upload URL. Please verify API Gateway CORS configuration and wait a few minutes for changes to deploy.');
             return response.json();
         }
 
@@ -181,18 +192,22 @@
             const response = await fetch(uploadUrl, {
                 method: 'PUT',
                 body: file,
-                headers: { 'Content-Type': 'application/pdf' }
+                headers: { 
+                    'Content-Type': 'application/pdf'
+                },
+                mode: 'cors'
             });
-            if (!response.ok) throw new Error('File upload to S3 failed.');
+            if (!response.ok) throw new Error('File upload to S3 failed. Please verify S3 CORS configuration.');
         }
 
         async function rewriteStory(sourceKey, userPrompt) {
             const response = await fetch(`${API_BASE_URL}/rewrite-story`, {
                 method: 'POST',
                 body: JSON.stringify({ sourceKey, userPrompt }),
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors'
             });
-            if (!response.ok) throw new Error('Failed to rewrite the story. Check API_BASE_URL and ensure the /rewrite-story route is configured.');
+            if (!response.ok) throw new Error('Failed to rewrite the story. Please verify API Gateway CORS configuration for the POST route.');
             return response.json();
         }
 
