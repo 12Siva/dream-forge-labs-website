@@ -164,7 +164,7 @@
 
                 // 4. Call the second Lambda to rewrite the story
                 setStatus('4/4: Weaving your new tale...');
-                const result = await rewriteStory(sourceKey, userPrompt);
+                rewriteStory(sourceKey, userPrompt);
                 
                 // 5. Immediately redirect to the results page
                 window.location.href = `results.html?fileName=${encodeURIComponent(pdfFile.name)}`;
