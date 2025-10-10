@@ -201,7 +201,7 @@
         }
 
         async function rewriteStory(sourceKey, userPrompt) {
-            const response = await fetch(`${API_BASE_URL}/rewrite-story`, {
+            const response = await fetch(`${API_BASE_URL}/story-weaver-processor`, {
                 method: 'POST',
                 body: JSON.stringify({ sourceKey, userPrompt }),
                 headers: { 'Content-Type': 'application/json' },
