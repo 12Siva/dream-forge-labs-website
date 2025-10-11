@@ -200,15 +200,14 @@
             if (!response.ok) throw new Error('File upload to S3 failed. Please verify S3 CORS configuration.');
         }
 
-        async function rewriteStory(sourceKey, userPrompt) {
-            const response = await fetch(`${API_BASE_URL}/rewrite-story`, {
-                method: 'POST',
-                body: JSON.stringify({ sourceKey, userPrompt }),
-                headers: { 'Content-Type': 'application/json' },
-                mode: 'cors'
-            });
-            if (!response.ok) throw new Error('Failed to rewrite the story. Please verify API Gateway CORS configuration for the POST route.');
-            return response.json();
+        function rewriteStory(sourceKey, userPrompt) {
+            const url = `${API_BASE_URL}/rewrite-story`;
+            const data = JSON.stringify({ sourceKey, userPrompt });
+    
+            // Use sendBeacon for a reliable fire-and-forget request that is
+            // guaranteed to be sent even when the page is navigating away.
+            // It requires the data to be sent as a Blob.
+            navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
         }
 
         function displayStory(storyText) {
