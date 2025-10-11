@@ -202,9 +202,7 @@
 
         function rewriteStory(sourceKey, userPrompt) {
             const url = `${API_BASE_URL}/rewrite-story`;
-            const data = JSON.stringify({ source_key: sourceKey, user_prompt: userPrompt });
-
-            console.log("Calling to rewrite story started!");
+            const data = JSON.stringify({ sourceKey, userPrompt });
             
             // fire-and-forget that survives navigation
             fetch(url, {
@@ -214,15 +212,11 @@
                 body: data,
                 keepalive: true
              }).catch(console.error);
-            
-             console.log("Calling to rewrite story sent!");
-            
+                        
              // hand off to the network stack, then navigate
              setTimeout(() => {
                 window.location.href = `results.html?fileName=${encodeURIComponent(pdfFile.name)}`;
-             }, 0);
-            
-            console.log("Calling to rewrite story done!");
+             }, 0);            
         }
 
         function displayStory(storyText) {
