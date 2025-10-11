@@ -202,12 +202,27 @@
 
         function rewriteStory(sourceKey, userPrompt) {
             const url = `${API_BASE_URL}/rewrite-story`;
-            const data = JSON.stringify({ sourceKey, userPrompt });
-    
-            // Use sendBeacon for a reliable fire-and-forget request that is
-            // guaranteed to be sent even when the page is navigating away.
-            // It requires the data to be sent as a Blob.
-            navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
+            const data = JSON.stringify({ source_key: sourceKey, user_prompt: userPrompt });
+
+            console.log("Calling to rewrite story started!");
+            
+            // fire-and-forget that survives navigation
+            fetch(url, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: data,
+                keepalive: true
+             }).catch(console.error);
+            
+             console.log("Calling to rewrite story sent!");
+            
+             // hand off to the network stack, then navigate
+             setTimeout(() => {
+                window.location.href = `results.html?fileName=${encodeURIComponent(pdfFile.name)}`;
+             }, 0);
+            
+            console.log("Calling to rewrite story done!");
         }
 
         function displayStory(storyText) {
