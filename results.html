@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your New Story - Dream Forge Labs</title>
+    <title>Story Results - Dream Forge Labs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
@@ -156,6 +156,7 @@
         }
 
         function displayStoryInBook(storyText) {
+            document.title = 'Your New Story | Dream Forge Labs'; // Success title
             statusDisplay.classList.add('hidden');
             bookContainer.classList.remove('hidden');
 
@@ -206,27 +207,34 @@
 
             book.innerHTML = pagesHtml;
 
+            // Defer the turn.js initialization to ensure the container is visible and has dimensions
+            setTimeout(() => {
+                $(book).turn({
+                    width: bookContainer.clientWidth,
+                    height: bookContainer.clientHeight,
+                    elevation: 50,
+                    gradients: true,
+                    autoCenter: true,
+                });
+            }, 0);
 
-            $(book).turn({
-                width: bookContainer.clientWidth,
-                height: bookContainer.clientHeight,
-                elevation: 50,
-                gradients: true,
-                autoCenter: true,
-            });
 
              // Resize handler
             window.addEventListener('resize', () => {
-                $(book).turn('size', bookContainer.clientWidth, bookContainer.clientHeight);
+                 setTimeout(() => {
+                    $(book).turn('size', bookContainer.clientWidth, bookContainer.clientHeight);
+                }, 0);
             });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const originalFileName = params.get('fileName');
+            document.title = 'Weaving Your Story... | Dream Forge Labs'; // Initial loading title
 
-            if (!originalFileName) {
+            if (!originalFeName) {
                 document.getElementById('status-text').textContent = 'Error: Could not find the story to load.';
+                document.title = 'Error Loading Story | Dream Forge Labs'; // Error title
                 return;
             }
 
@@ -245,6 +253,7 @@
                     console.log(`Story not ready yet (attempt ${attempts}), checking again in 10s...`);
                     if (attempts >= maxAttempts) {
                         clearInterval(intervalId);
+                        document.title = 'Story Timed Out | Dream Forge Labs'; // Timeout title
                         const statusBox = document.getElementById('status-box');
                         const spinner = document.getElementById('spinner');
                         const statusText = document.getElementById('status-text');
@@ -269,4 +278,3 @@
     </script>
 </body>
 </html>
-
