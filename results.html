@@ -5,18 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your New Story - Dream Forge Labs</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Exo 2', sans-serif; }
-    </style>
-</head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: #f0f0f0; /* Lighter background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #book-container {
+            width: 90vw;
+            height: 90vh;
+            max-width: 1000px;
+            max-height: 700px;
+        }
+        #book {
+            width: 100%;
+            height: 100%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        #book .page {
+            background: #fff;
+            padding: 2em;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            overflow: auto;
+            border: 1px solid #ddd;
+        }
+       #book .page-wrapper {
+            -webkit-perspective: 2000px;
+            -moz-perspective: 2000px;
+            -ms-perspective: 2000px;
+            -o-perspective: 2000px;
+            perspective: 2000px;
+        }
+        #book .hard {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #333;
+        }
 
-    <main class="container mx-auto px-6 py-16">
+        #book .odd {
+           border-left: 0;
+        }
+
+        #book .even {
+            border-right: 0;
+        }
+
+       #book .page-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+       #book .page-content .page-text {
+            flex-grow: 1;
+        }
+       #book .page-content .page-footer {
+            text-align: center;
+            font-size: 0.8em;
+            color: #999;
+            padding-top: 1em;
+            flex-shrink: 0;
+        }
+
+        #status-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Dark mode styles */
+        .dark body {
+            background: #111827;
+        }
+        .dark #book .page {
+            background: #1F2937;
+            color: #d1d5db;
+            border-color: #374151;
+        }
+        .dark #book .hard {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+        .dark #book .page-content .page-footer {
+            color: #6b7280;
+        }
+    </style>
+     <script>
+        // Set theme on initial load to prevent Flash of Unstyled Content (FOUC)
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+    </script>
+</head>
+<body class="dark:bg-gray-900">
+
+    <main class="container mx-auto px-6 py-16 flex justify-center items-center">
         <div id="status-display" class="max-w-4xl mx-auto text-center">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-8">Weaving your new adventure...</h1>
-            <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 p-4 rounded-lg flex items-center justify-center">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-8 text-gray-900 dark:text-gray-50">Weaving your new adventure...</h1>
+            <div id="status-box" class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 p-4 rounded-lg flex items-center justify-center">
+                <svg id="spinner" class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -24,18 +126,17 @@
             </div>
         </div>
 
-        <div id="story-output" class="hidden max-w-4xl mx-auto mt-12 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg prose dark:prose-invert max-w-none leading-relaxed">
-            </div>
+        <div id="book-container" class="hidden">
+             <div id="book"></div>
+        </div>
     </main>
 
     <script>
-        // Use the same API Base URL as your app.html
         const API_BASE_URL = 'https://507041jst3.execute-api.us-east-2.amazonaws.com';
-
         const statusDisplay = document.getElementById('status-display');
-        const storyOutput = document.getElementById('story-output');
+        const bookContainer = document.getElementById('book-container');
+        const book = document.getElementById('book');
 
-        // Function to fetch the final story
         async function getStory(key) {
             try {
                 const response = await fetch(`${API_BASE_URL}/get-story?key=${encodeURIComponent(key)}`);
@@ -43,22 +144,83 @@
                     const data = await response.json();
                     return data.story;
                 }
-                return null; // Return null if not found (404) or other non-ok status
+                 if (response.status === 404) {
+                    return null; // Story not found yet, which is expected while polling
+                }
+                throw new Error(`Failed to fetch story: ${response.statusText}`);
             } catch (error) {
                 console.error("Error fetching story:", error);
+                // Return null to keep polling, but log the error.
                 return null;
             }
         }
 
-        // Function to display the story
-        function displayStory(storyText) {
-            const formattedStory = storyText.split('\\n').map(p => `<p>${p}</p>`).join('');
-            storyOutput.innerHTML = `<h1>Your Rewritten Story</h1>${formattedStory}`;
+        function displayStoryInBook(storyText) {
             statusDisplay.classList.add('hidden');
-            storyOutput.classList.remove('hidden');
+            bookContainer.classList.remove('hidden');
+
+            const paragraphs = storyText.split(/\\n/g).filter(p => p.trim() !== '');
+            
+            const wordsPerPage = 200; 
+            let pagesHtml = '';
+            
+            let allPages = [];
+            let currentPage = [];
+            let currentPageWords = 0;
+
+            paragraphs.forEach(p => {
+                const wordCount = p.split(/\s+/).length;
+                if(currentPageWords + wordCount > wordsPerPage && currentPage.length > 0) {
+                    allPages.push(currentPage.join('<br><br>'));
+                    currentPage = [p];
+                    currentPageWords = wordCount;
+                } else {
+                    currentPage.push(p);
+                    currentPageWords += wordCount;
+                }
+            });
+            if(currentPage.length > 0) {
+                 allPages.push(currentPage.join('<br><br>'));
+            }
+
+
+            // Add a cover page
+            pagesHtml += '<div class="hard"><h1>Your New Story</h1></div>';
+            pagesHtml += '<div class="hard"></div>'; // Blank page after cover
+
+
+            allPages.forEach((pageText, index) => {
+                 pagesHtml += `
+                    <div class="page">
+                        <div class="page-content">
+                            <div class="page-text">${pageText}</div>
+                            <div class="page-footer">Page ${index + 1}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Add a back cover
+            pagesHtml += '<div class="hard"></div>';
+            pagesHtml += '<div class="hard"></div>';
+
+            book.innerHTML = pagesHtml;
+
+
+            $(book).turn({
+                width: bookContainer.clientWidth,
+                height: bookContainer.clientHeight,
+                elevation: 50,
+                gradients: true,
+                autoCenter: true,
+            });
+
+             // Resize handler
+            window.addEventListener('resize', () => {
+                $(book).turn('size', bookContainer.clientWidth, bookContainer.clientHeight);
+            });
         }
 
-        // --- Main Logic on Page Load ---
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const originalFileName = params.get('fileName');
@@ -67,21 +229,44 @@
                 document.getElementById('status-text').textContent = 'Error: Could not find the story to load.';
                 return;
             }
-            
-            // Construct the expected key for the rewritten text file
+
             const rewrittenStoryKey = originalFileName.replace(/\.[^/.]+$/, "") + ".rewritten.txt";
 
-            // Poll for the result every 10 seconds
+            let attempts = 0;
+            const maxAttempts = 30; // Poll for 5 minutes (30 * 10s)
+
             const intervalId = setInterval(async () => {
+                attempts++;
                 const story = await getStory(rewrittenStoryKey);
                 if (story) {
-                    clearInterval(intervalId); // Stop polling
-                    displayStory(story);
+                    clearInterval(intervalId);
+                    displayStoryInBook(story);
                 } else {
-                    console.log('Story not ready yet, checking again in 10s...');
+                    console.log(`Story not ready yet (attempt ${attempts}), checking again in 10s...`);
+                    if (attempts >= maxAttempts) {
+                        clearInterval(intervalId);
+                        const statusBox = document.getElementById('status-box');
+                        const spinner = document.getElementById('spinner');
+                        const statusText = document.getElementById('status-text');
+
+                        if(spinner) spinner.style.display = 'none';
+                        statusText.textContent = 'Sorry, the story is taking longer than expected to create.';
+                        
+                        const button = document.createElement('a');
+                        button.href = 'app.html';
+                        button.className = 'bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-2 px-4 rounded-lg text-md transition-all duration-300 ml-4';
+                        button.textContent = 'Try Again';
+                        
+                        statusBox.classList.remove('bg-blue-100', 'dark:bg-blue-900/30', 'text-blue-800', 'dark:text-blue-300');
+                        statusBox.classList.add('bg-red-100', 'dark:bg-red-900/30', 'text-red-800', 'dark:text-red-300');
+                        statusBox.appendChild(button);
+
+                        console.error("Max polling attempts reached. Stopping.");
+                    }
                 }
-            }, 10000); // 10 seconds
+            }, 10000);
         });
     </script>
 </body>
 </html>
+
