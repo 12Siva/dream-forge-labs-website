@@ -20,7 +20,8 @@
       display: flex; justify-content: center; align-items: center;
       min-height: 100dvh; overflow: hidden;
     }
-    #book-container { width: 90vw; height: 90vh; max-width: 1000px; max-height: 700px; }
+    #book-container { width: 90vw; height: 90vh; max-width: 1000px; max-height: 700px; position: relative;}
+    #nav-overlay { z-index: 10; }
     #book { width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
     #book .page {
       background: #fff; padding: 2em; font-size: 16px; line-height: 1.6;
@@ -52,6 +53,55 @@
     .dark #book .page { background: #1F2937; color: #d1d5db; border-color: #374151; }
     .dark #book .hard { background-color: #111827; color: #f9fafb; }
     .dark #book .page-footer { color: #6b7280; }
+
+    /* Edge hints */
+    .edge-hint {
+      position: absolute; top: 0; bottom: 0; width: 64px; opacity: .0; pointer-events: none;
+      transition: opacity .2s ease;
+      background: linear-gradient(to right, rgba(255,255,255,.06), rgba(255,255,255,0));
+    }
+    .edge-hint.left  { left: 0; }
+    .edge-hint.right { right: 0; transform: scaleX(-1); }
+    
+    /* Big click areas */
+    .hotspot {
+      position: absolute; top: 0; bottom: 0; width: 22%;
+      pointer-events: auto; background: transparent; border: 0; padding: 0; margin: 0;
+      cursor: pointer;
+    }
+    .hotspot.left  { left: 0; }
+    .hotspot.right { right: 0; }
+    .hotspot:hover ~ .edge-hint.left,
+    .hotspot.left:hover ~ .edge-hint.left { opacity: .35; }
+    .hotspot:hover ~ .edge-hint.right,
+    .hotspot.right:hover ~ .edge-hint.right { opacity: .35; }
+    
+    /* Visible buttons + indicator */
+    .controls {
+      position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+      display: flex; align-items: center; gap: .75rem; pointer-events: auto;
+    }
+    .page-nav-btn {
+      width: 40px; height: 40px; border-radius: 9999px; border: 1px solid rgba(255,255,255,.2);
+      background: rgba(0,0,0,.35); color: #fff; font-size: 22px; line-height: 1;
+      display: grid; place-items: center;
+    }
+    .page-nav-btn:hover { background: rgba(0,0,0,.5); }
+    .indicator {
+      font-size: .9rem; color: rgba(255,255,255,.8); padding: .25rem .5rem;
+      background: rgba(0,0,0,.25); border-radius: .5rem; border: 1px solid rgba(255,255,255,.15);
+    }
+    
+    /* Light theme adjustments */
+    :root:not(.dark) .page-nav-btn { background: rgba(0,0,0,.15); color: #111; border-color: rgba(0,0,0,.15); }
+    :root:not(.dark) .page-nav-btn:hover { background: rgba(0,0,0,.22); }
+    :root:not(.dark) .indicator { background: rgba(0,0,0,.08); color: #222; border-color: rgba(0,0,0,.08); }
+    
+    /* Make the cursor show arrows over hotspots (desktop nicety) */
+    @media (pointer:fine) {
+      .hotspot.left  { cursor: w-resize; }
+      .hotspot.right { cursor: e-resize; }
+    }
   </style>
 
   <script>
@@ -81,6 +131,23 @@
     </div>
 
     <div id="book-container" class="hidden">
+      <!-- Navigation overlay -->
+      <div id="nav-overlay" class="pointer-events-none absolute inset-0">
+        <!-- subtle edge hints -->
+        <div class="edge-hint left"></div>
+        <div class="edge-hint right"></div>
+      
+        <!-- large click/tap hotspots -->
+        <button id="hot-left"  class="hotspot left"  aria-label="Previous page"></button>
+        <button id="hot-right" class="hotspot right" aria-label="Next page"></button>
+      
+        <!-- visible prev/next buttons -->
+        <div class="controls">
+          <button id="btn-prev" class="page-nav-btn" type="button" aria-label="Previous page">‹</button>
+          <div id="pageIndicator" class="indicator" aria-live="polite"></div>
+          <button id="btn-next" class="page-nav-btn" type="button" aria-label="Next page">›</button>
+        </div>
+      </div>
       <div id="book"></div>
     </div>
   </main>
@@ -142,6 +209,40 @@
       });
     }
 
+    function updateIndicator() {
+      const el = document.getElementById('pageIndicator');
+      if (!el || typeof $(book).turn !== 'function' || !$(book).data('turn')) return;
+      const page = $(book).turn('page');
+      const total = $(book).turn('pages');
+      el.textContent = `Page ${page} of ${total}`;
+    }
+  
+    function setupNav() {
+      const prevBtn = document.getElementById('btn-prev');
+      const nextBtn = document.getElementById('btn-next');
+      const hotLeft = document.getElementById('hot-left');
+      const hotRight = document.getElementById('hot-right');
+    
+      const prev = () => { if ($(book).data('turn')) $(book).turn('previous'); };
+      const next = () => { if ($(book).data('turn')) $(book).turn('next'); };
+    
+      prevBtn?.addEventListener('click', prev);
+      nextBtn?.addEventListener('click', next);
+      hotLeft?.addEventListener('click', prev);
+      hotRight?.addEventListener('click', next);
+    
+      // Arrow keys
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') prev();
+        if (e.key === 'ArrowRight') next();
+      });
+    
+      // Update indicator on turn
+      if (typeof $(book).turn === 'function' && $(book).data('turn')) {
+        $(book).bind('turned', updateIndicator);
+        updateIndicator();
+      }
+    }
 
     function displayStoryInBook(storyText) {
       document.title = 'Your New Story | Dream Forge Labs';
@@ -193,6 +294,7 @@
 
       setTimeout(() => {
         initTurn();
+        setupNav();
       }, 0);
     }
 
