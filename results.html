@@ -38,10 +38,26 @@
     #book .page.hidden { display: none !important; }
     #book .page-content { height: 100%; display: flex; flex-direction: column;   flex: 1 1 auto;
                           min-height: 0;           /* critical for flex scroll */}
-    #book .page-text { overflow-wrap: anywhere; word-break: break-word;   flex: 1 1 auto;
-                       overflow: auto;                  /* show scrollbar when needed */
-                       -webkit-overflow-scrolling: touch;  /* smooth iOS scrolling */
-                       padding-right: 0.25rem;          /* avoid scrollbar overlay on text */}
+
+    #book .page-text {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      flex: 1 1 auto;
+      overflow: auto; /* show scrollbar when needed */
+      -webkit-overflow-scrolling: touch; /* smooth iOS scrolling */
+      padding-right: 0.25rem; /* avoid scrollbar overlay on text */
+      color: #333; /* visible in light mode */
+    }
+    
+    .dark #book .page-text {
+      color: #d1d5db; /* force visible text in dark mode */
+    }
+    
+    #book .page-text p {
+      margin: 0 0 0.75rem;
+    }
+
+    
     #book .page-footer { text-align: center; font-size: 0.8em; color: #999; padding-top: 1em; flex-shrink: 0; }
     #status-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 
@@ -280,95 +296,79 @@
       statusDisplay.setAttribute('aria-hidden', 'true');
       bookContainer.classList.remove('hidden');
     
-      // Normalize the story text aggressively
+      // Normalize any kind of escaped/newline combo
       const normalized = String(storyText ?? '')
-        // turn literal backslash-n into real newlines
-        .replace(/\\n/g, '\n')
-        // unify CRLF/CR to LF
-        .replace(/\r\n/g, '\n')
-        .replace(/\r/g, '\n')
-        // collapse huge runs of blank lines to a single blank line (keeps paragraphs)
-        .replace(/\n{3,}/g, '\n\n');
-      
-      // If after normalization it's still empty, render raw (debug-friendly)
-      if (!normalized.trim()) {
-        book.innerHTML = `
-          <div class="hard"><h1>Your New Story</h1></div>
-          <div class="page"><div class="page-content">
-            <div class="page-text">${escapeHTML(String(storyText ?? '')).replace(/\n/g,'<br>')}</div>
-            <div class="page-footer">Page 1</div>
-          </div></div>
-          <div class="hard"></div><div class="hard"></div>
-        `;
-        requestAnimationFrame(() => { const ok = initTurn(); setupNav(ok); updateIndicator?.(); });
-        return;
-      }
-      
-      // Build paragraphs + paginate
-      const paragraphs = normalized.split(/\n+/).filter(p => p.trim() !== '');
-      
+        .replace(/\\r/g, '\r')   // literal "\r" → CR
+        .replace(/\\n/g, '\n')   // literal "\n" → LF
+        .replace(/\r\n/g, '\n')  // CRLF → LF
+        .replace(/\r/g, '\n')    // lone CR → LF
+        .replace(/\n{3,}/g, '\n\n'); // collapse huge gaps
+    
+      // Split to paragraphs
+      const paras = normalized.split(/\n+/).filter(p => p.trim() !== '');
+    
+      // Paginate by word count
       const wordsPerPage = 200;
-      const allPages = [];
-      let current = [];
-      let wordSum = 0;
-      
-      for (const p of paragraphs) {
-        const count = p.trim() ? p.trim().split(/\s+/).length : 0;
-        if (wordSum + count > wordsPerPage && current.length > 0) {
-          allPages.push(current.join('\n\n'));
-          current = [p];
-          wordSum = count;
+      const pages = [];
+      let bucket = [], count = 0;
+    
+      for (const p of paras) {
+        const c = p.trim() ? p.trim().split(/\s+/).length : 0;
+        if (bucket.length && count + c > wordsPerPage) {
+          pages.push(bucket.join('\n\n'));
+          bucket = [p]; count = c;
         } else {
-          current.push(p);
-          wordSum += count;
+          bucket.push(p); count += c;
         }
       }
-      if (current.length) allPages.push(current.join('\n\n'));
-      
-      // FINAL SAFEGUARD: if somehow empty, use the whole normalized text as one page
-      if (allPages.length === 0) allPages.push(normalized.trim());
+      if (bucket.length) pages.push(bucket.join('\n\n'));
+      if (!pages.length && normalized.trim()) pages.push(normalized.trim());
     
-      // Build pages
-      let pagesHtml = '';
-      pagesHtml += '<div class="hard"><h1>Your New Story</h1></div>';
-      pagesHtml += '<div class="hard"></div>';
-      
-      for (let i = 0; i < allPages.length; i++) {
-        const safe = escapeHTML(allPages[i]).replace(/\n/g, '<br>');
-        pagesHtml += `
+      // Build DOM
+      let html = '';
+      html += '<div class="hard"><h1>Your New Story</h1></div>';
+      html += '<div class="hard"></div>';
+    
+      for (let i = 0; i < pages.length; i++) {
+        const paraHtml = pages[i]
+          .split('\n')
+          .map(line => `<p>${escapeHTML(line)}</p>`)
+          .join('');
+        html += `
           <div class="page">
             <div class="page-content">
-              <div class="page-text">${safe}</div>
+              <div class="page-text">${paraHtml}</div>
               <div class="page-footer">Page ${i + 1}</div>
             </div>
           </div>`;
       }
-      
-      // make total (2 hard front + content + 2 hard back) even
-      const totalWithBacks = 2 + allPages.length + 2;
+    
+      // Make total count even (2 front hards + content + 2 back hards)
+      const totalWithBacks = 2 + pages.length + 2;
       if (totalWithBacks % 2 !== 0) {
-        pagesHtml += `
-          <div class="page">
-            <div class="page-content">
-              <div class="page-text"></div>
-              <div class="page-footer"></div>
-            </div>
-          </div>`;
+        html += `<div class="page"><div class="page-content">
+                   <div class="page-text"></div><div class="page-footer"></div>
+                 </div></div>`;
       }
-      
-      // now add back covers
-      pagesHtml += '<div class="hard"></div><div class="hard"></div>';
-      
-      book.innerHTML = pagesHtml;
-      
-      // initialize (handles Turn.js or fallback)
-      requestAnimationFrame(() => {
-        const ok = initTurn();
-        setupNav(ok);
+    
+      // Back covers
+      html += '<div class="hard"></div><div class="hard"></div>';
+    
+      // Paint
+      book.innerHTML = html;
+    
+      // Debug: confirm what we rendered
+      console.debug('renderedPages', { count: pages.length, first200: pages[0]?.slice(0, 200) });
+    
+      // (Re)initialize turn + controls
+      setTimeout(() => {
+        initTurn();
+        setupNav();
         updateIndicator?.();
         book.focus?.();
-      });
+      }, 0);
     }
+
 
 
     document.addEventListener('DOMContentLoaded', () => {
