@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weaving Your Story... | Dream Forge Labs</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com/3.4.1?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;9.0&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Exo 2', sans-serif;
@@ -21,6 +22,17 @@
         }
         .dark ::selection {
             color: #111827;
+        }
+        /* Style for the horizontal rule page break */
+        .page-break {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(249, 115, 22, 0.75), rgba(0, 0, 0, 0));
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .dark .page-break {
+             background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(249, 115, 22, 0.6), rgba(255, 255, 255, 0));
         }
     </style>
     <script>
@@ -50,7 +62,7 @@
 
         <div id="story-container" class="max-w-4xl mx-auto hidden">
              <div class="bg-white dark:bg-gray-900/50 p-8 md:p-12 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800">
-                <div id="story-output" class="prose dark:prose-invert max-w-none prose-p:text-lg prose-p:leading-relaxed">
+                <div id="story-output" class="prose dark:prose-invert max-w-none prose-lg prose-p:leading-relaxed">
                     </div>
                  <div class="text-center mt-12">
                      <a href="app.html" class="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30">
@@ -71,12 +83,6 @@
         const storyContainer = document.getElementById('story-container');
         const storyOutput = document.getElementById('story-output');
 
-        /**
-         * Fetches the story content from the API.
-         * @param {string} key - The key of the story file to fetch.
-         * @param {AbortSignal} signal - The signal to abort the fetch request.
-         * @returns {Promise<string|null>} The story text or null if not found or an error occurred.
-         */
         async function getStory(key, signal) {
             try {
                 const response = await fetch(`${API_BASE_URL}/get-story?key=${encodeURIComponent(key)}`, { signal });
@@ -84,7 +90,6 @@
                     const data = await response.json();
                     return data.story;
                 }
-                // Return null for 404 (still generating) or other server errors to allow for retries.
                 return null;
             } catch (error) {
                 if (error.name !== 'AbortError') {
@@ -95,42 +100,42 @@
         }
 
         /**
-         * Displays the fetched story in a simple, readable format.
+         * Displays the story, breaking it up with horizontal lines for readability.
          * @param {string} storyText - The raw text of the story.
          */
         function displayStory(storyText) {
-            // Set the page title
             document.title = 'Your New Story | Dream Forge Labs';
-
-            // Hide the status indicator and show the story container
             statusDisplay.classList.add('hidden');
             storyContainer.classList.remove('hidden');
 
-            // Sanitize and format the story text into HTML paragraphs
-            const formattedStory = storyText
-                .replace(/\\n/g, '\n') // Replace literal '\n' with newlines
-                .split('\n')          // Split text into an array of lines
-                .filter(p => p.trim() !== '') // Remove any empty lines
-                .map(p => `<p>${p.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`) // Wrap each line in a <p> tag and escape HTML
-                .join('');
+            const paragraphs = storyText
+                .replace(/\\n/g, '\n')
+                .split('\n')
+                .filter(p => p.trim() !== '');
 
-            // Inject the formatted HTML into the output element
-            storyOutput.innerHTML = formattedStory;
+            let finalHtml = '';
+            const breakInterval = 4; // Add a line break every 4 paragraphs
+
+            paragraphs.forEach((p, index) => {
+                finalHtml += `<p>${p.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
+
+                // Add a horizontal rule after every `breakInterval` paragraphs, but not after the last one.
+                if ((index + 1) % breakInterval === 0 && (index + 1) < paragraphs.length) {
+                    finalHtml += `<hr class="page-break">`;
+                }
+            });
+
+            storyOutput.innerHTML = finalHtml;
         }
 
-        /**
-         * Shows an error message if the story fails to load after multiple attempts.
-         */
         function showTimeoutError() {
             document.title = 'Story Timed Out | Dream Forge Labs';
             if (spinner) spinner.style.display = 'none';
             statusText.textContent = 'Sorry, the story is taking longer than expected to create.';
 
-            // Change status box color to indicate an error
             statusBox.classList.remove('bg-blue-100', 'dark:bg-blue-900/30', 'text-blue-800', 'dark:text-blue-300');
             statusBox.classList.add('bg-red-100', 'dark:bg-red-900/30', 'text-red-800', 'dark:text-red-300');
 
-            // Add a "Try Again" button that links back to the app page
             const tryAgainButton = document.createElement('a');
             tryAgainButton.href = 'app.html';
             tryAgainButton.className = 'bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-2 px-4 rounded-lg text-md transition-all duration-300 ml-4';
@@ -145,20 +150,17 @@
 
             if (!originalFileName) {
                 statusText.textContent = 'Error: No story specified.';
-                showTimeoutError(); // Use the error display for consistency
+                showTimeoutError();
                 return;
             }
 
-            // The key for the rewritten story is the original filename with a new extension
             const rewrittenStoryKey = originalFileName.replace(/\.[^/.]+$/, "") + ".rewritten.txt";
 
-            // Poll for the story with exponential backoff
             let attempts = 0;
-            const maxAttempts = 12; // About 5 minutes total polling time
-            let delay = 5000;       // Start with a 5-second delay
+            const maxAttempts = 12;
+            let delay = 5000;
             let stopped = false;
 
-            // Abort fetch requests if the user navigates away
             const controller = new AbortController();
             window.addEventListener('beforeunload', () => {
                 stopped = true;
@@ -172,15 +174,13 @@
 
                     if (story) {
                         displayStory(story);
-                        return; // Success! Exit the loop.
+                        return;
                     }
 
-                    // Wait for the next attempt
                     await new Promise(resolve => setTimeout(resolve, delay));
-                    delay = Math.min(delay * 1.5, 30000); // Increase delay, maxing out at 30s
+                    delay = Math.min(delay * 1.5, 30000);
                 }
 
-                // If the loop finishes without success, show the timeout error
                 if (!stopped) {
                     showTimeoutError();
                     console.error("Max polling attempts reached. Stopping.");
