@@ -7,8 +7,8 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js" defer></script>
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
 
 
   <style>
@@ -23,10 +23,15 @@
   #book { width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 
   /* Page styling */
+  /* turn.js controls these; keep them simple */
   #book .page {
-    background: #fff; padding: 2em; font-size: 16px; line-height: 1.6;
-    color: #333; overflow: auto; border: 1px solid #ddd;
-    display: flex; flex-direction: column; min-height: 0;
+    position: absolute;          /* allow turn.js to place pages */
+    display: block;              /* NOT flex */
+    background: #fff;
+    padding: 0;                  /* move padding inside content wrapper */
+    color: #333;
+    border: 1px solid #ddd;
+    overflow: hidden;            /* scrolling goes inside content wrapper */
   }
   #book .hard {
     background-color: #f2f2f2; font-weight: bold; display: flex;
@@ -34,10 +39,17 @@
   }
   #book .odd { border-left: 0; }
   #book .even { border-right: 0; }
-  #book .page.hidden { display: none !important; }
 
   /* Page content regions */
-  #book .page-content { height: 100%; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  /* place your layout/scrolling on an inner div */
+  #book .page-content {
+    height: 100%;
+    padding: 2em;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;              /* scrolling here, not on .page */
+    min-height: 0;
+  }
   #book .page-text {
     overflow-wrap: anywhere; word-break: break-word;
     flex: 1 1 auto; overflow: auto; -webkit-overflow-scrolling: touch;
