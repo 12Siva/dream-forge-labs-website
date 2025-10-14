@@ -35,6 +35,7 @@
     }
     #book .odd { border-left: 0; }
     #book .even { border-right: 0; }
+    #book .page.hidden { display: none !important; }
     #book .page-content { height: 100%; display: flex; flex-direction: column;   flex: 1 1 auto;
                           min-height: 0;           /* critical for flex scroll */}
     #book .page-text { overflow-wrap: anywhere; word-break: break-word;   flex: 1 1 auto;
@@ -184,62 +185,93 @@
     }
     
     function initTurn() {
-      if (typeof $.fn.turn !== 'function') {
-        console.warn('Turn.js not loaded; rendering without page-flip.');
-        return; // graceful fallback: you still see the content
+      // Guard: is the plugin present?
+      if (!$.fn || !$.fn.turn) {
+        console.warn('Turn.js plugin not found — using fallback pager.');
+        return false;
       }
     
-      $(book).turn({
-        width: bookContainer.clientWidth,
-        height: bookContainer.clientHeight,
-        elevation: 50,
-        gradients: true,
-        autoCenter: true
-      });
+      // Make sure the book is visible and has non-zero size
+      const w = bookContainer.clientWidth || 800;
+      const h = bookContainer.clientHeight || 600;
     
-      // Debounced resize
-      let rAF;
-      window.addEventListener('resize', () => {
-        cancelAnimationFrame(rAF);
-        rAF = requestAnimationFrame(() => {
-          $(book).turn('size', bookContainer.clientWidth, bookContainer.clientHeight);
+      try {
+        // If it was initialized before (hot reloads etc), destroy and re-init
+        if ($(book).data('turn')) $(book).turn('destroy');
+    
+        $(book).turn({
+          width: w,
+          height: h,
+          elevation: 50,
+          gradients: true,
+          autoCenter: true,
+          // help Turn.js compute spread cleanly
+          display: 'double'
         });
-      });
+    
+        // Bind after init (always)
+        $(book).off('turned', updateIndicator).on('turned', updateIndicator);
+        updateIndicator();
+        return true;
+      } catch (e) {
+        console.error('Turn.js init failed — using fallback pager.', e);
+        return false;
+      }
     }
 
     function updateIndicator() {
       const el = document.getElementById('pageIndicator');
-      if (!el || typeof $(book).turn !== 'function' || !$(book).data('turn')) return;
-      const page = $(book).turn('page');
-      const total = $(book).turn('pages');
-      el.textContent = `Page ${page} of ${total}`;
+      if (!el) return;
+      try {
+        const page = $(book).turn('page');
+        const total = $(book).turn('pages');
+        el.textContent = `Page ${page} of ${total}`;
+      } catch {
+        // ignore — fallback will handle
+      }
     }
-  
-    function setupNav() {
-      const prevBtn = document.getElementById('btn-prev');
-      const nextBtn = document.getElementById('btn-next');
-      const hotLeft = document.getElementById('hot-left');
-      const hotRight = document.getElementById('hot-right');
+
+    function updateIndicatorFallback(page, total) {
+      const el = document.getElementById('pageIndicator');
+      if (el) el.textContent = `Page ${page} of ${total}`;
+    }
+
+    function setupNav(useTurn) {
+      const prev = () => {
+        if (useTurn && $(book).data('turn')) {
+          $(book).turn('previous');
+          return;
+        }
+        // fallback: show previous .page manually
+        const pages = [...book.querySelectorAll('.page')];
+        const i = pages.findIndex(p => !p.classList.contains('hidden'));
+        const prevIdx = Math.max(0, i - 1);
+        pages.forEach((p, idx) => p.classList.toggle('hidden', idx !== prevIdx));
+        updateIndicatorFallback(prevIdx + 1, pages.length);
+      };
     
-      const prev = () => { if ($(book).data('turn')) $(book).turn('previous'); };
-      const next = () => { if ($(book).data('turn')) $(book).turn('next'); };
+      const next = () => {
+        if (useTurn && $(book).data('turn')) {
+          $(book).turn('next');
+          return;
+        }
+        // fallback: show next .page manually
+        const pages = [...book.querySelectorAll('.page')];
+        const i = pages.findIndex(p => !p.classList.contains('hidden'));
+        const nextIdx = Math.min(pages.length - 1, i + 1);
+        pages.forEach((p, idx) => p.classList.toggle('hidden', idx !== nextIdx));
+        updateIndicatorFallback(nextIdx + 1, pages.length);
+      };
     
-      prevBtn?.addEventListener('click', prev);
-      nextBtn?.addEventListener('click', next);
-      hotLeft?.addEventListener('click', prev);
-      hotRight?.addEventListener('click', next);
+      document.getElementById('btn-prev')?.addEventListener('click', prev);
+      document.getElementById('btn-next')?.addEventListener('click', next);
+      document.getElementById('hot-left')?.addEventListener('click', prev);
+      document.getElementById('hot-right')?.addEventListener('click', next);
     
-      // Arrow keys
       window.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft') prev();
         if (e.key === 'ArrowRight') next();
       });
-    
-      // Update indicator on turn
-      if (typeof $(book).turn === 'function' && $(book).data('turn')) {
-        $(book).bind('turned', updateIndicator);
-        updateIndicator();
-      }
     }
 
     function displayStoryInBook(storyText) {
@@ -308,12 +340,17 @@
     
       book.innerHTML = pagesHtml;
     
-      setTimeout(() => {
-        initTurn();
-        setupNav();
-        if (typeof updateIndicator === 'function') updateIndicator();
+      requestAnimationFrame(() => {
+        const ok = initTurn();
+        // If Turn.js didn't initialize, enable fallback: show the first page only
+        if (!ok) {
+          const pages = book.querySelectorAll('.page');
+          pages.forEach((p, idx) => p.classList.toggle('hidden', idx !== 0));
+          updateIndicatorFallback(1, pages.length);
+        }
+        setupNav(ok);
         book.focus?.();
-      }, 0);
+      });
     }
 
 
