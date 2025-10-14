@@ -280,16 +280,38 @@
       statusDisplay.setAttribute('aria-hidden', 'true');
       bookContainer.classList.remove('hidden');
     
-      // Normalize and split
-      const normalized = storyText.replace(/\\n/g, '\n').replace(/\r\n?/g, '\n');
+      // Normalize the story text aggressively
+      const normalized = String(storyText ?? '')
+        // turn literal backslash-n into real newlines
+        .replace(/\\n/g, '\n')
+        // unify CRLF/CR to LF
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        // collapse huge runs of blank lines to a single blank line (keeps paragraphs)
+        .replace(/\n{3,}/g, '\n\n');
+      
+      // If after normalization it's still empty, render raw (debug-friendly)
+      if (!normalized.trim()) {
+        book.innerHTML = `
+          <div class="hard"><h1>Your New Story</h1></div>
+          <div class="page"><div class="page-content">
+            <div class="page-text">${escapeHTML(String(storyText ?? '')).replace(/\n/g,'<br>')}</div>
+            <div class="page-footer">Page 1</div>
+          </div></div>
+          <div class="hard"></div><div class="hard"></div>
+        `;
+        requestAnimationFrame(() => { const ok = initTurn(); setupNav(ok); updateIndicator?.(); });
+        return;
+      }
+      
+      // Build paragraphs + paginate
       const paragraphs = normalized.split(/\n+/).filter(p => p.trim() !== '');
-    
-      // Paginate by word count
+      
       const wordsPerPage = 200;
       const allPages = [];
       let current = [];
       let wordSum = 0;
-    
+      
       for (const p of paragraphs) {
         const count = p.trim() ? p.trim().split(/\s+/).length : 0;
         if (wordSum + count > wordsPerPage && current.length > 0) {
@@ -302,13 +324,15 @@
         }
       }
       if (current.length) allPages.push(current.join('\n\n'));
-      if (allPages.length === 0 && normalized.trim()) allPages.push(normalized.trim());
+      
+      // FINAL SAFEGUARD: if somehow empty, use the whole normalized text as one page
+      if (allPages.length === 0) allPages.push(normalized.trim());
     
       // Build pages
       let pagesHtml = '';
       pagesHtml += '<div class="hard"><h1>Your New Story</h1></div>';
       pagesHtml += '<div class="hard"></div>';
-    
+      
       for (let i = 0; i < allPages.length; i++) {
         const safe = escapeHTML(allPages[i]).replace(/\n/g, '<br>');
         pagesHtml += `
@@ -317,38 +341,31 @@
               <div class="page-text">${safe}</div>
               <div class="page-footer">Page ${i + 1}</div>
             </div>
-          </div>
-        `;
+          </div>`;
       }
-    
-      // Ensure even total: 2 (front hards) + content + 2 (back hards)
+      
+      // make total (2 hard front + content + 2 hard back) even
       const totalWithBacks = 2 + allPages.length + 2;
       if (totalWithBacks % 2 !== 0) {
-        // add one blank content page BEFORE back covers
         pagesHtml += `
           <div class="page">
             <div class="page-content">
               <div class="page-text"></div>
               <div class="page-footer"></div>
             </div>
-          </div>
-        `;
+          </div>`;
       }
-    
-      // Back covers
+      
+      // now add back covers
       pagesHtml += '<div class="hard"></div><div class="hard"></div>';
-    
+      
       book.innerHTML = pagesHtml;
-    
+      
+      // initialize (handles Turn.js or fallback)
       requestAnimationFrame(() => {
         const ok = initTurn();
-        // If Turn.js didn't initialize, enable fallback: show the first page only
-        if (!ok) {
-          const pages = book.querySelectorAll('.page');
-          pages.forEach((p, idx) => p.classList.toggle('hidden', idx !== 0));
-          updateIndicatorFallback(1, pages.length);
-        }
         setupNav(ok);
+        updateIndicator?.();
         book.focus?.();
       });
     }
