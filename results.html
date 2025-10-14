@@ -1,461 +1,193 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Weaving Your Story... | Dream Forge Labs</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
-
-
-  <style>
-  /* Layout & base theme */
-  body {
-    font-family: 'Exo 2', sans-serif;
-    background-color: #f0f0f0;
-    display: flex; justify-content: center; align-items: center;
-    min-height: 100dvh; overflow: hidden;
-  }
-  #book-container { width: 90vw; height: 90vh; max-width: 1000px; max-height: 700px; position: relative; }
-  #book { width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-
-  /* Page styling */
-  /* turn.js controls these; keep them simple */
-  #book .page {
-    position: absolute;          /* allow turn.js to place pages */
-    display: block;              /* NOT flex */
-    background: #fff;
-    padding: 0;                  /* move padding inside content wrapper */
-    color: #333;
-    border: 1px solid #ddd;
-    overflow: hidden;            /* scrolling goes inside content wrapper */
-  }
-  #book .hard {
-    background-color: #f2f2f2; font-weight: bold; display: flex;
-    justify-content: center; align-items: center; font-size: 2em; color: #333;
-  }
-  #book .odd { border-left: 0; }
-  #book .even { border-right: 0; }
-
-  /* Page content regions */
-  /* place your layout/scrolling on an inner div */
-  #book .page-content {
-    height: 100%;
-    padding: 2em;
-    display: flex;
-    flex-direction: column;
-    overflow: auto;              /* scrolling here, not on .page */
-    min-height: 0;
-  }
-  #book .page-text {
-    overflow-wrap: anywhere; word-break: break-word;
-    flex: 1 1 auto; overflow: auto; -webkit-overflow-scrolling: touch;
-    padding-right: 0.25rem;
-    color: #111; /* visible in light theme */
-  }
-  #book .page-text p { margin: 0 0 0.75rem; }
-  #book .page-footer {
-    text-align: center; font-size: 0.8em; color: #999; padding-top: 1em; flex-shrink: 0;
-  }
-
-  /* Dark mode */
-  .dark body { background: #111827; }
-  .dark #book .page { background: #1F2937; color: #d1d5db; border-color: #374151; }
-  .dark #book .hard { background-color: #111827; color: #f9fafb; }
-  .dark #book .page-footer { color: #6b7280; }
-  .dark #book .page-text { color: #e5e7eb !important; }
-
-  /* Navigation overlay */
-  #nav-overlay { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
-  #nav-overlay .hotspot,
-  #nav-overlay .controls { pointer-events: auto; }
-
-  /* Big click areas */
-  .hotspot {
-    position: absolute; top: 0; bottom: 0; width: 22%;
-    background: transparent; border: 0; padding: 0; margin: 0; cursor: pointer;
-  }
-  .hotspot.left  { left: 0; }
-  .hotspot.right { right: 0; }
-
-  /* Edge hints (purely visual) */
-  .edge-hint {
-    position: absolute; top: 0; bottom: 0; width: 64px; opacity: 0; pointer-events: none;
-    transition: opacity .2s ease;
-    background: linear-gradient(to right, rgba(255,255,255,.06), rgba(255,255,255,0));
-  }
-  .edge-hint.left  { left: 0; }
-  .edge-hint.right { right: 0; transform: scaleX(-1); }
-  #nav-overlay:hover .edge-hint { opacity: .35; }
-
-  /* Visible buttons + indicator */
-  .controls {
-    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
-    display: flex; align-items: center; gap: .75rem;
-  }
-  .page-nav-btn {
-    width: 40px; height: 40px; border-radius: 9999px; border: 1px solid rgba(255,255,255,.2);
-    background: rgba(0,0,0,.35); color: #fff; font-size: 22px; line-height: 1;
-    display: grid; place-items: center;
-  }
-  .page-nav-btn:hover { background: rgba(0,0,0,.5); }
-  .indicator {
-    font-size: .9rem; color: rgba(255,255,255,.8); padding: .25rem .5rem;
-    background: rgba(0,0,0,.25); border-radius: .5rem; border: 1px solid rgba(255,255,255,.15);
-  }
-  :root:not(.dark) .page-nav-btn { background: rgba(0,0,0,.15); color: #111; border-color: rgba(0,0,0,.15); }
-  :root:not(.dark) .page-nav-btn:hover { background: rgba(0,0,0,.22); }
-  :root:not(.dark) .indicator { background: rgba(0,0,0,.08); color: #222; border-color: rgba(0,0,0,.08); }
-
-  /* Desktop cursors for hotspots */
-  @media (pointer:fine) {
-    .hotspot.left  { cursor: w-resize; }
-    .hotspot.right { cursor: e-resize; }
-  }
-  </style>
-
-  <script>
-    // Prevent FOUC on theme
-    if (localStorage.getItem('theme') === 'dark' ||
-        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weaving Your Story... | Dream Forge Labs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: #F9FAFB;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark body {
+            background: #111827;
+        }
+        ::selection {
+            background-color: #F97316;
+            color: #ffffff;
+        }
+        .dark ::selection {
+            color: #111827;
+        }
+    </style>
+    <script>
+        // Set theme on initial load to prevent Flash of Unstyled Content (FOUC)
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+    </script>
 </head>
-<body class="dark:bg-gray-900">
-  <main class="container mx-auto px-6 py-16 flex justify-center items-center">
-    <div id="status-display" class="max-w-4xl mx-auto text-center" role="status" aria-live="polite">
-      <h1 class="text-4xl md:text-5xl font-extrabold mb-8 text-gray-900 dark:text-gray-50">
-        Weaving your new adventure...
-      </h1>
-      <div id="status-box" class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 p-4 rounded-lg flex items-center justify-center">
-        <svg id="spinner" class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span id="status-text">Our storytellers are hard at work. This can take a minute or two. Please wait...</span>
-      </div>
-    </div>
+<body class="antialiased text-gray-800 dark:text-gray-300">
 
-    <div id="book-container" class="hidden">
-      <!-- Navigation overlay -->
-      <div id="nav-overlay" class="absolute inset-0">
-      
-        <!-- large click/tap hotspots -->
-        <button id="hot-left"  class="hotspot left"  aria-label="Previous page"></button>
-        <button id="hot-right" class="hotspot right" aria-label="Next page"></button>
-        <!-- subtle edge hints -->
-        <div class="edge-hint left"></div>
-        <div class="edge-hint right"></div>
-      
-        <!-- visible prev/next buttons -->
-        <div class="controls">
-          <button id="btn-prev" class="page-nav-btn" type="button" aria-label="Previous page">‹</button>
-          <div id="pageIndicator" class="indicator" aria-live="polite"></div>
-          <button id="btn-next" class="page-nav-btn" type="button" aria-label="Next page">›</button>
-        </div>
-      </div>
-      <div id="book" tabindex="-1"></div>
-    </div>
-  </main>
-
-  <script>
-    const API_BASE_URL = 'https://507041jst3.execute-api.us-east-2.amazonaws.com';
-    const statusDisplay = document.getElementById('status-display');
-    const statusBox = document.getElementById('status-box');
-    const spinner = document.getElementById('spinner');
-    const statusText = document.getElementById('status-text');
-    const bookContainer = document.getElementById('book-container');
-    const book = document.getElementById('book');
-
-    function escapeHTML(s) {
-      return s
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    async function getStory(key, signal) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/get-story?key=${encodeURIComponent(key)}`, { signal });
-        if (response.ok) {
-          const data = await response.json();
-          return data.story;
-        }
-        if (response.status === 404) return null; // still generating
-        return null; // treat other errors as retryable
-      } catch (error) {
-        if (error.name !== 'AbortError') console.error("Error fetching story:", error);
-        return null;
-      }
-    }
-    
-    function initTurn() {
-      // Guard: is the plugin present?
-      if (!$.fn || !$.fn.turn) {
-        console.warn('Turn.js plugin not found — using fallback pager.');
-        return false;
-      }
-    
-      // Make sure the book is visible and has non-zero size
-      const w = bookContainer.clientWidth || 800;
-      const h = bookContainer.clientHeight || 600;
-    
-      try {
-        // If it was initialized before (hot reloads etc), destroy and re-init
-        if ($(book).data('turn')) $(book).turn('destroy');
-    
-        $(book).turn({
-          width: w,
-          height: h,
-          elevation: 50,
-          gradients: true,
-          autoCenter: true,
-          // help Turn.js compute spread cleanly
-          display: 'double'
-        });
-    
-        // Bind after init (always)
-        $(book).off('turned', updateIndicator).on('turned', updateIndicator);
-        updateIndicator();
-        return true;
-      } catch (e) {
-        console.error('Turn.js init failed — using fallback pager.', e);
-        return false;
-      }
-    }
-
-    function updateIndicator() {
-      const el = document.getElementById('pageIndicator');
-      if (!el) return;
-      try {
-        const page = $(book).turn('page');
-        const total = $(book).turn('pages');
-        el.textContent = `Page ${page} of ${total}`;
-      } catch {
-        // ignore — fallback will handle
-      }
-    }
-
-    function updateIndicatorFallback(page, total) {
-      const el = document.getElementById('pageIndicator');
-      if (el) el.textContent = `Page ${page} of ${total}`;
-    }
-
-    function setupNav(useTurn) {
-      const prev = () => {
-        if (useTurn && $(book).data('turn')) {
-          $(book).turn('previous');
-          return;
-        }
-        // fallback: show previous .page manually
-        const pages = [...book.querySelectorAll('.page')];
-        const i = pages.findIndex(p => !p.classList.contains('hidden'));
-        const prevIdx = Math.max(0, i - 1);
-        pages.forEach((p, idx) => p.classList.toggle('hidden', idx !== prevIdx));
-        updateIndicatorFallback(prevIdx + 1, pages.length);
-      };
-    
-      const next = () => {
-        if (useTurn && $(book).data('turn')) {
-          $(book).turn('next');
-          return;
-        }
-        // fallback: show next .page manually
-        const pages = [...book.querySelectorAll('.page')];
-        const i = pages.findIndex(p => !p.classList.contains('hidden'));
-        const nextIdx = Math.min(pages.length - 1, i + 1);
-        pages.forEach((p, idx) => p.classList.toggle('hidden', idx !== nextIdx));
-        updateIndicatorFallback(nextIdx + 1, pages.length);
-      };
-    
-      document.getElementById('btn-prev')?.addEventListener('click', prev);
-      document.getElementById('btn-next')?.addEventListener('click', next);
-      document.getElementById('hot-left')?.addEventListener('click', prev);
-      document.getElementById('hot-right')?.addEventListener('click', next);
-    
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') prev();
-        if (e.key === 'ArrowRight') next();
-      });
-    }
-
-    function displayStoryInBook(storyText) {
-      console.debug('storyText: ', storyText);
-      document.title = 'Your New Story | Dream Forge Labs';
-      statusDisplay.classList.add('hidden');
-      statusDisplay.setAttribute('aria-hidden', 'true');
-      bookContainer.classList.remove('hidden');
-    
-      // Normalize any kind of escaped/newline combo
-      const normalized = String(storyText ?? '')
-        .replace(/\\r/g, '\r')   // literal "\r" → CR
-        .replace(/\\n/g, '\n')   // literal "\n" → LF
-        .replace(/\r\n/g, '\n')  // CRLF → LF
-        .replace(/\r/g, '\n')    // lone CR → LF
-        .replace(/\n{3,}/g, '\n\n'); // collapse huge gaps
-    
-      // Split to paragraphs with a stricter filter
-      const paras = normalized
-        .split(/\n+/)
-        // NEW, STRICTER FILTER: Ensures a paragraph has at least one letter or number.
-        .filter(p => /[a-zA-Z0-9]/.test(p));
-
-      console.debug('Paragraph: ', paras);
-    
-      // Paginate by word count
-      const wordsPerPage = 200;
-      const pages = [];
-      
-      if (paras.length > 0) {
-        let currentPageBucket = [];
-        let currentWordCount = 0;
-      
-        for (const p of paras) {
-          const wordCount = p.trim() ? p.trim().split(/\s+/).length : 0;
-          if (wordCount === 0) continue; // Extra safety: skip empty paragraphs
-      
-          // If the current paragraph itself is larger than a whole page, or if adding it
-          // to a non-empty page would overflow, then the current page is finished.
-          if (currentPageBucket.length > 0 && (currentWordCount + wordCount > wordsPerPage)) {
-            pages.push(currentPageBucket.join('\n\n'));
-            currentPageBucket = []; // Start a new, empty page
-            currentWordCount = 0;
-          }
-      
-          // Add the current paragraph to the bucket and update the count
-          currentPageBucket.push(p);
-          currentWordCount += wordCount;
-        }
-      
-        // Add the last page if it has any content
-        if (currentPageBucket.length > 0) {
-          pages.push(currentPageBucket.join('\n\n'));
-        }
-      }
-      
-      // Ensure at least one page exists if there's any text at all
-      if (pages.length === 0 && normalized.trim()) {
-          pages.push(normalized.trim());
-      }
-
-      console.log('DEBUG: Final Generated Pages:', pages);
-      console.log('DEBUG: Content of Page 2:', pages[1]);
-    
-      // Build DOM
-      let html = '';
-      // html += '<div class="hard"><h1>Your New Story</h1></div>';
-      // html += '<div class="hard"></div>';
-    
-      for (let i = 0; i < pages.length; i++) {
-        const paraHtml = pages[i]
-          .split('\n\n')
-          .map(line => `<p>${escapeHTML(line)}</p>`)
-          .join('');
-        html += `
-          <div class="page">
-            <div class="page-content">
-              <div class="page-text">${paraHtml}</div>
-              <div class="page-footer">Page ${i + 1}</div>
+    <main class="container mx-auto px-6 py-16">
+        <div id="status-display" class="max-w-3xl mx-auto text-center" role="status" aria-live="polite">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-gray-50 mb-8">
+                Weaving your new adventure...
+            </h1>
+            <div id="status-box" class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 p-4 rounded-lg flex items-center justify-center shadow-md">
+                <svg id="spinner" class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="status-text">Our storytellers are hard at work. This can take a minute or two. Please wait...</span>
             </div>
-          </div>`;
-      }
-    
-      // Make total count even (2 front hards + content + 2 back hards)
-      // const totalWithBacks = 2 + pages.length + 2;
-      // if (totalWithBacks % 2 !== 0) {
-      //  html += `<div class="page"><div class="page-content">
-      //             <div class="page-text"></div><div class="page-footer"></div>
-      //           </div></div>`;
-      // }
-    
-      // Back covers
-      // html += '<div class="hard"></div><div class="hard"></div>';
-    
-      // Paint
-      book.innerHTML = html;
-    
-      // Debug: confirm what we rendered
-      console.debug('renderedPages', { count: pages.length, first200: pages[0]?.slice(0, 200) });
-    
-      // (Re)initialize turn + controls
-      setTimeout(() => {
-        initTurn();
-        setupNav();
-        updateIndicator?.();
-        book.focus?.();
-      }, 0);
-    }
+        </div>
 
+        <div id="story-container" class="max-w-4xl mx-auto hidden">
+             <div class="bg-white dark:bg-gray-900/50 p-8 md:p-12 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800">
+                <div id="story-output" class="prose dark:prose-invert max-w-none prose-p:text-lg prose-p:leading-relaxed">
+                    </div>
+                 <div class="text-center mt-12">
+                     <a href="app.html" class="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30">
+                        Weave Another Story
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
 
+    <script>
+        // --- Configuration & DOM Elements ---
+        const API_BASE_URL = 'https://507041jst3.execute-api.us-east-2.amazonaws.com';
+        const statusDisplay = document.getElementById('status-display');
+        const statusBox = document.getElementById('status-box');
+        const spinner = document.getElementById('spinner');
+        const statusText = document.getElementById('status-text');
+        const storyContainer = document.getElementById('story-container');
+        const storyOutput = document.getElementById('story-output');
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initial loading title already set in <title>
-      const params = new URLSearchParams(window.location.search);
-      const originalFileName = params.get('fileName');
-
-      if (!originalFileName) {
-        statusText.textContent = 'Error: Could not find the story to load.';
-        document.title = 'Error Loading Story | Dream Forge Labs';
-        return;
-      }
-
-      const rewrittenStoryKey = originalFileName.replace(/\.[^/.]+$/, "") + ".rewritten.txt";
-
-      // Exponential backoff polling with abort-on-unload
-      let attempts = 0;
-      const maxAttempts = 12; // ~5 minutes with backoff
-      let delay = 5000; // start at 5s
-      let stopped = false;
-
-      const aborters = new Set();
-      window.addEventListener('beforeunload', () => {
-        stopped = true;
-        aborters.forEach(a => a.abort());
-      });
-
-      (async function poll() {
-        while (!stopped && attempts < maxAttempts) {
-          attempts++;
-          const ac = new AbortController();
-          aborters.add(ac);
-          const story = await getStory(rewrittenStoryKey, ac.signal);
-          aborters.delete(ac);
-
-          if (story) {
-            displayStoryInBook(story);
-            return;
-          }
-
-          await new Promise(res => setTimeout(res, delay));
-          delay = Math.min(Math.floor(delay * 1.5), 30000);
+        /**
+         * Fetches the story content from the API.
+         * @param {string} key - The key of the story file to fetch.
+         * @param {AbortSignal} signal - The signal to abort the fetch request.
+         * @returns {Promise<string|null>} The story text or null if not found or an error occurred.
+         */
+        async function getStory(key, signal) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/get-story?key=${encodeURIComponent(key)}`, { signal });
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.story;
+                }
+                // Return null for 404 (still generating) or other server errors to allow for retries.
+                return null;
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error("Error fetching story:", error);
+                }
+                return null;
+            }
         }
 
-        // Timeout UI
-        document.title = 'Story Timed Out | Dream Forge Labs';
-        if (spinner) spinner.style.display = 'none';
-        statusText.textContent = 'Sorry, the story is taking longer than expected to create.';
+        /**
+         * Displays the fetched story in a simple, readable format.
+         * @param {string} storyText - The raw text of the story.
+         */
+        function displayStory(storyText) {
+            // Set the page title
+            document.title = 'Your New Story | Dream Forge Labs';
 
-        const button = document.createElement('a');
-        button.href = `app.html?fileName=${encodeURIComponent(originalFileName)}`;
-        button.className = 'bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-2 px-4 rounded-lg text-md transition-all duration-300 ml-4';
-        button.textContent = 'Try Again';
+            // Hide the status indicator and show the story container
+            statusDisplay.classList.add('hidden');
+            storyContainer.classList.remove('hidden');
 
-        statusBox.classList.remove('bg-blue-100','dark:bg-blue-900/30','text-blue-800','dark:text-blue-300');
-        statusBox.classList.add('bg-red-100','dark:bg-red-900/30','text-red-800','dark:text-red-300');
-        statusBox.appendChild(button);
+            // Sanitize and format the story text into HTML paragraphs
+            const formattedStory = storyText
+                .replace(/\\n/g, '\n') // Replace literal '\n' with newlines
+                .split('\n')          // Split text into an array of lines
+                .filter(p => p.trim() !== '') // Remove any empty lines
+                .map(p => `<p>${p.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`) // Wrap each line in a <p> tag and escape HTML
+                .join('');
 
-        console.error("Max polling attempts reached. Stopping.");
-      })();
-    });
-  </script>
+            // Inject the formatted HTML into the output element
+            storyOutput.innerHTML = formattedStory;
+        }
+
+        /**
+         * Shows an error message if the story fails to load after multiple attempts.
+         */
+        function showTimeoutError() {
+            document.title = 'Story Timed Out | Dream Forge Labs';
+            if (spinner) spinner.style.display = 'none';
+            statusText.textContent = 'Sorry, the story is taking longer than expected to create.';
+
+            // Change status box color to indicate an error
+            statusBox.classList.remove('bg-blue-100', 'dark:bg-blue-900/30', 'text-blue-800', 'dark:text-blue-300');
+            statusBox.classList.add('bg-red-100', 'dark:bg-red-900/30', 'text-red-800', 'dark:text-red-300');
+
+            // Add a "Try Again" button that links back to the app page
+            const tryAgainButton = document.createElement('a');
+            tryAgainButton.href = 'app.html';
+            tryAgainButton.className = 'bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-2 px-4 rounded-lg text-md transition-all duration-300 ml-4';
+            tryAgainButton.textContent = 'Try Again';
+            statusBox.appendChild(tryAgainButton);
+        }
+
+        // --- Main Execution Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const originalFileName = params.get('fileName');
+
+            if (!originalFileName) {
+                statusText.textContent = 'Error: No story specified.';
+                showTimeoutError(); // Use the error display for consistency
+                return;
+            }
+
+            // The key for the rewritten story is the original filename with a new extension
+            const rewrittenStoryKey = originalFileName.replace(/\.[^/.]+$/, "") + ".rewritten.txt";
+
+            // Poll for the story with exponential backoff
+            let attempts = 0;
+            const maxAttempts = 12; // About 5 minutes total polling time
+            let delay = 5000;       // Start with a 5-second delay
+            let stopped = false;
+
+            // Abort fetch requests if the user navigates away
+            const controller = new AbortController();
+            window.addEventListener('beforeunload', () => {
+                stopped = true;
+                controller.abort();
+            });
+
+            (async function pollForStory() {
+                while (!stopped && attempts < maxAttempts) {
+                    attempts++;
+                    const story = await getStory(rewrittenStoryKey, controller.signal);
+
+                    if (story) {
+                        displayStory(story);
+                        return; // Success! Exit the loop.
+                    }
+
+                    // Wait for the next attempt
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay = Math.min(delay * 1.5, 30000); // Increase delay, maxing out at 30s
+                }
+
+                // If the loop finishes without success, show the timeout error
+                if (!stopped) {
+                    showTimeoutError();
+                    console.error("Max polling attempts reached. Stopping.");
+                }
+            })();
+        });
+    </script>
+
 </body>
 </html>
