@@ -117,6 +117,20 @@
       .hotspot.left  { cursor: w-resize; }
       .hotspot.right { cursor: e-resize; }
     }
+
+    /* ---- FINAL OVERRIDES (place at the end) ---- */
+
+    /* Visible paragraph color in both themes */
+    #book .page-text { color: #111 !important; }         /* light theme */
+    .dark #book .page-text { color: #e5e7eb !important; }/* dark theme */
+    
+    /* Paragraph spacing */
+    #book .page-text p { margin: 0 0 0.75rem; }
+    
+    /* Ensure overlay doesn't block interaction/selection */
+    #nav-overlay { pointer-events: none; z-index: 20; }
+    #nav-overlay .hotspot,
+    #nav-overlay .controls { pointer-events: auto; }
   </style>
 
   <script>
