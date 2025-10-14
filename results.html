@@ -10,127 +10,99 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js" defer></script>
 
+
   <style>
-    body {
-      font-family: 'Exo 2', sans-serif;
-      background-color: #f0f0f0;
-      display: flex; justify-content: center; align-items: center;
-      min-height: 100dvh; overflow: hidden;
-    }
-    #book-container { width: 90vw; height: 90vh; max-width: 1000px; max-height: 700px; position: relative;}
-    #nav-overlay { z-index: 20; }             /* keep overlay above the book */
-    #nav-overlay:hover .edge-hint { opacity: .35; }  /* visual fade only */
-    #book { width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-    #book .page {
-      background: #fff; padding: 2em; font-size: 16px; line-height: 1.6;
-      color: #333; overflow: auto; border: 1px solid #ddd;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;   
-    }
-    #book .page-wrapper { perspective: 2000px; }
-    #book .hard {
-      background-color: #f2f2f2; font-weight: bold; display: flex;
-      justify-content: center; align-items: center; font-size: 2em; color: #333;
-    }
-    #book .odd { border-left: 0; }
-    #book .even { border-right: 0; }
-    #book .page.hidden { display: none !important; }
-    #book .page-content { height: 100%; display: flex; flex-direction: column;   flex: 1 1 auto;
-                          min-height: 0;           /* critical for flex scroll */}
+  /* Layout & base theme */
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background-color: #f0f0f0;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100dvh; overflow: hidden;
+  }
+  #book-container { width: 90vw; height: 90vh; max-width: 1000px; max-height: 700px; position: relative; }
+  #book { width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 
-    #book .page-text {
-      overflow-wrap: anywhere;
-      word-break: break-word;
-      flex: 1 1 auto;
-      overflow: auto; /* show scrollbar when needed */
-      -webkit-overflow-scrolling: touch; /* smooth iOS scrolling */
-      padding-right: 0.25rem; /* avoid scrollbar overlay on text */
-      color: #333; /* visible in light mode */
-    }
-    
-    .dark #book .page-text {
-      color: #d1d5db; /* force visible text in dark mode */
-    }
-    
-    #book .page-text p {
-      margin: 0 0 0.75rem;
-    }
+  /* Page styling */
+  #book .page {
+    background: #fff; padding: 2em; font-size: 16px; line-height: 1.6;
+    color: #333; overflow: auto; border: 1px solid #ddd;
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  #book .hard {
+    background-color: #f2f2f2; font-weight: bold; display: flex;
+    justify-content: center; align-items: center; font-size: 2em; color: #333;
+  }
+  #book .odd { border-left: 0; }
+  #book .even { border-right: 0; }
+  #book .page.hidden { display: none !important; }
 
-    
-    #book .page-footer { text-align: center; font-size: 0.8em; color: #999; padding-top: 1em; flex-shrink: 0; }
-    #status-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  /* Page content regions */
+  #book .page-content { height: 100%; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  #book .page-text {
+    overflow-wrap: anywhere; word-break: break-word;
+    flex: 1 1 auto; overflow: auto; -webkit-overflow-scrolling: touch;
+    padding-right: 0.25rem;
+    color: #111; /* visible in light theme */
+  }
+  #book .page-text p { margin: 0 0 0.75rem; }
+  #book .page-footer {
+    text-align: center; font-size: 0.8em; color: #999; padding-top: 1em; flex-shrink: 0;
+  }
 
-    /* Dark mode */
-    .dark body { background: #111827; }
-    .dark #book .page { background: #1F2937; color: #d1d5db; border-color: #374151; }
-    .dark #book .hard { background-color: #111827; color: #f9fafb; }
-    .dark #book .page-footer { color: #6b7280; }
+  /* Dark mode */
+  .dark body { background: #111827; }
+  .dark #book .page { background: #1F2937; color: #d1d5db; border-color: #374151; }
+  .dark #book .hard { background-color: #111827; color: #f9fafb; }
+  .dark #book .page-footer { color: #6b7280; }
+  .dark #book .page-text { color: #e5e7eb !important; }
 
+  /* Navigation overlay */
+  #nav-overlay { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+  #nav-overlay .hotspot,
+  #nav-overlay .controls { pointer-events: auto; }
 
-    
-    /* Big click areas */
-    .hotspot {
-      position: absolute; top: 0; bottom: 0; width: 22%;
-      pointer-events: auto; background: transparent; border: 0; padding: 0; margin: 0;
-      cursor: pointer;
-    }
-    .hotspot.left  { left: 0; }
-    .hotspot.right { right: 0; }
-    .hotspot:hover ~ .edge-hint.left,
-    .hotspot.left:hover ~ .edge-hint.left { opacity: .35; }
-    .hotspot:hover ~ .edge-hint.right,
-    .hotspot.right:hover ~ .edge-hint.right { opacity: .35; }
+  /* Big click areas */
+  .hotspot {
+    position: absolute; top: 0; bottom: 0; width: 22%;
+    background: transparent; border: 0; padding: 0; margin: 0; cursor: pointer;
+  }
+  .hotspot.left  { left: 0; }
+  .hotspot.right { right: 0; }
 
-    /* Edge hints */
-    .edge-hint {
-      position: absolute; top: 0; bottom: 0; width: 64px; opacity: .0; pointer-events: none;
-      transition: opacity .2s ease;
-      background: linear-gradient(to right, rgba(255,255,255,.06), rgba(255,255,255,0));
-    }
-    .edge-hint.left  { left: 0; }
-    .edge-hint.right { right: 0; transform: scaleX(-1); }
-    
-    /* Visible buttons + indicator */
-    .controls {
-      position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
-      display: flex; align-items: center; gap: .75rem; pointer-events: auto;
-    }
-    .page-nav-btn {
-      width: 40px; height: 40px; border-radius: 9999px; border: 1px solid rgba(255,255,255,.2);
-      background: rgba(0,0,0,.35); color: #fff; font-size: 22px; line-height: 1;
-      display: grid; place-items: center;
-    }
-    .page-nav-btn:hover { background: rgba(0,0,0,.5); }
-    .indicator {
-      font-size: .9rem; color: rgba(255,255,255,.8); padding: .25rem .5rem;
-      background: rgba(0,0,0,.25); border-radius: .5rem; border: 1px solid rgba(255,255,255,.15);
-    }
-    
-    /* Light theme adjustments */
-    :root:not(.dark) .page-nav-btn { background: rgba(0,0,0,.15); color: #111; border-color: rgba(0,0,0,.15); }
-    :root:not(.dark) .page-nav-btn:hover { background: rgba(0,0,0,.22); }
-    :root:not(.dark) .indicator { background: rgba(0,0,0,.08); color: #222; border-color: rgba(0,0,0,.08); }
-    
-    /* Make the cursor show arrows over hotspots (desktop nicety) */
-    @media (pointer:fine) {
-      .hotspot.left  { cursor: w-resize; }
-      .hotspot.right { cursor: e-resize; }
-    }
+  /* Edge hints (purely visual) */
+  .edge-hint {
+    position: absolute; top: 0; bottom: 0; width: 64px; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease;
+    background: linear-gradient(to right, rgba(255,255,255,.06), rgba(255,255,255,0));
+  }
+  .edge-hint.left  { left: 0; }
+  .edge-hint.right { right: 0; transform: scaleX(-1); }
+  #nav-overlay:hover .edge-hint { opacity: .35; }
 
-    /* ---- FINAL OVERRIDES (place at the end) ---- */
+  /* Visible buttons + indicator */
+  .controls {
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .page-nav-btn {
+    width: 40px; height: 40px; border-radius: 9999px; border: 1px solid rgba(255,255,255,.2);
+    background: rgba(0,0,0,.35); color: #fff; font-size: 22px; line-height: 1;
+    display: grid; place-items: center;
+  }
+  .page-nav-btn:hover { background: rgba(0,0,0,.5); }
+  .indicator {
+    font-size: .9rem; color: rgba(255,255,255,.8); padding: .25rem .5rem;
+    background: rgba(0,0,0,.25); border-radius: .5rem; border: 1px solid rgba(255,255,255,.15);
+  }
+  :root:not(.dark) .page-nav-btn { background: rgba(0,0,0,.15); color: #111; border-color: rgba(0,0,0,.15); }
+  :root:not(.dark) .page-nav-btn:hover { background: rgba(0,0,0,.22); }
+  :root:not(.dark) .indicator { background: rgba(0,0,0,.08); color: #222; border-color: rgba(0,0,0,.08); }
 
-    /* Visible paragraph color in both themes */
-    #book .page-text { color: #111 !important; }         /* light theme */
-    .dark #book .page-text { color: #e5e7eb !important; }/* dark theme */
-    
-    /* Paragraph spacing */
-    #book .page-text p { margin: 0 0 0.75rem; }
-    
-    /* Ensure overlay doesn't block interaction/selection */
-    #nav-overlay { pointer-events: none; z-index: 20; }
-    #nav-overlay .hotspot,
-    #nav-overlay .controls { pointer-events: auto; }
+  /* Desktop cursors for hotspots */
+  @media (pointer:fine) {
+    .hotspot.left  { cursor: w-resize; }
+    .hotspot.right { cursor: e-resize; }
+  }
   </style>
 
   <script>
@@ -340,8 +312,8 @@
     
       // Build DOM
       let html = '';
-      html += '<div class="hard"><h1>Your New Story</h1></div>';
-      html += '<div class="hard"></div>';
+      // html += '<div class="hard"><h1>Your New Story</h1></div>';
+      // html += '<div class="hard"></div>';
     
       for (let i = 0; i < pages.length; i++) {
         const paraHtml = pages[i]
@@ -366,7 +338,7 @@
       }
     
       // Back covers
-      html += '<div class="hard"></div><div class="hard"></div>';
+      // html += '<div class="hard"></div><div class="hard"></div>';
     
       // Paint
       book.innerHTML = html;
