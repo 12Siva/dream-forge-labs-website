@@ -7,10 +7,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- jQuery first -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
-
-  <!-- Use jsDelivr for turn.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js" defer></script>
 
   <style>
@@ -21,7 +18,8 @@
       min-height: 100dvh; overflow: hidden;
     }
     #book-container { width: 90vw; height: 90vh; max-width: 1000px; max-height: 700px; position: relative;}
-    #nav-overlay { z-index: 10; }
+    #nav-overlay { z-index: 20; }             /* keep overlay above the book */
+    #nav-overlay:hover .edge-hint { opacity: .35; }  /* visual fade only */
     #book { width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
     #book .page {
       background: #fff; padding: 2em; font-size: 16px; line-height: 1.6;
@@ -38,9 +36,7 @@
     #book .odd { border-left: 0; }
     #book .even { border-right: 0; }
     #book .page-content { height: 100%; display: flex; flex-direction: column;   flex: 1 1 auto;
-                          min-height: 0;           /* critical for flex scroll */
-                          display: flex;
-                          flex-direction: column;}
+                          min-height: 0;           /* critical for flex scroll */}
     #book .page-text { overflow-wrap: anywhere; word-break: break-word;   flex: 1 1 auto;
                        overflow: auto;                  /* show scrollbar when needed */
                        -webkit-overflow-scrolling: touch;  /* smooth iOS scrolling */
@@ -54,14 +50,7 @@
     .dark #book .hard { background-color: #111827; color: #f9fafb; }
     .dark #book .page-footer { color: #6b7280; }
 
-    /* Edge hints */
-    .edge-hint {
-      position: absolute; top: 0; bottom: 0; width: 64px; opacity: .0; pointer-events: none;
-      transition: opacity .2s ease;
-      background: linear-gradient(to right, rgba(255,255,255,.06), rgba(255,255,255,0));
-    }
-    .edge-hint.left  { left: 0; }
-    .edge-hint.right { right: 0; transform: scaleX(-1); }
+
     
     /* Big click areas */
     .hotspot {
@@ -75,6 +64,15 @@
     .hotspot.left:hover ~ .edge-hint.left { opacity: .35; }
     .hotspot:hover ~ .edge-hint.right,
     .hotspot.right:hover ~ .edge-hint.right { opacity: .35; }
+
+    /* Edge hints */
+    .edge-hint {
+      position: absolute; top: 0; bottom: 0; width: 64px; opacity: .0; pointer-events: none;
+      transition: opacity .2s ease;
+      background: linear-gradient(to right, rgba(255,255,255,.06), rgba(255,255,255,0));
+    }
+    .edge-hint.left  { left: 0; }
+    .edge-hint.right { right: 0; transform: scaleX(-1); }
     
     /* Visible buttons + indicator */
     .controls {
@@ -132,14 +130,14 @@
 
     <div id="book-container" class="hidden">
       <!-- Navigation overlay -->
-      <div id="nav-overlay" class="pointer-events-none absolute inset-0">
-        <!-- subtle edge hints -->
-        <div class="edge-hint left"></div>
-        <div class="edge-hint right"></div>
+      <div id="nav-overlay" class="absolute inset-0">
       
         <!-- large click/tap hotspots -->
         <button id="hot-left"  class="hotspot left"  aria-label="Previous page"></button>
         <button id="hot-right" class="hotspot right" aria-label="Next page"></button>
+        <!-- subtle edge hints -->
+        <div class="edge-hint left"></div>
+        <div class="edge-hint right"></div>
       
         <!-- visible prev/next buttons -->
         <div class="controls">
@@ -148,7 +146,7 @@
           <button id="btn-next" class="page-nav-btn" type="button" aria-label="Next page">›</button>
         </div>
       </div>
-      <div id="book"></div>
+      <div id="book" tabindex="-1"></div>
     </div>
   </main>
 
@@ -249,16 +247,17 @@
       statusDisplay.classList.add('hidden');
       statusDisplay.setAttribute('aria-hidden', 'true');
       bookContainer.classList.remove('hidden');
-
-      // Split paragraphs correctly
-      const paragraphs = storyText.split(/\r?\n+/).filter(p => p.trim() !== '');
-
-      // Simple pagination by word count
+    
+      // Normalize and split
+      const normalized = storyText.replace(/\\n/g, '\n').replace(/\r\n?/g, '\n');
+      const paragraphs = normalized.split(/\n+/).filter(p => p.trim() !== '');
+    
+      // Paginate by word count
       const wordsPerPage = 200;
       const allPages = [];
       let current = [];
       let wordSum = 0;
-
+    
       for (const p of paragraphs) {
         const count = p.trim() ? p.trim().split(/\s+/).length : 0;
         if (wordSum + count > wordsPerPage && current.length > 0) {
@@ -271,13 +270,15 @@
         }
       }
       if (current.length) allPages.push(current.join('\n\n'));
-
+      if (allPages.length === 0 && normalized.trim()) allPages.push(normalized.trim());
+    
+      // Build pages
       let pagesHtml = '';
       pagesHtml += '<div class="hard"><h1>Your New Story</h1></div>';
       pagesHtml += '<div class="hard"></div>';
-
+    
       for (let i = 0; i < allPages.length; i++) {
-        const safe = escapeHTML(allPages[i]).replace(/\r?\n/g, '<br>');
+        const safe = escapeHTML(allPages[i]).replace(/\n/g, '<br>');
         pagesHtml += `
           <div class="page">
             <div class="page-content">
@@ -287,16 +288,34 @@
           </div>
         `;
       }
-
+    
+      // Ensure even total: 2 (front hards) + content + 2 (back hards)
+      const totalWithBacks = 2 + allPages.length + 2;
+      if (totalWithBacks % 2 !== 0) {
+        // add one blank content page BEFORE back covers
+        pagesHtml += `
+          <div class="page">
+            <div class="page-content">
+              <div class="page-text"></div>
+              <div class="page-footer"></div>
+            </div>
+          </div>
+        `;
+      }
+    
+      // Back covers
       pagesHtml += '<div class="hard"></div><div class="hard"></div>';
-
+    
       book.innerHTML = pagesHtml;
-
+    
       setTimeout(() => {
         initTurn();
         setupNav();
+        if (typeof updateIndicator === 'function') updateIndicator();
+        book.focus?.();
       }, 0);
     }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       // Initial loading title already set in <title>
