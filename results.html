@@ -277,6 +277,7 @@
     }
 
     function displayStoryInBook(storyText) {
+      console.debug('storyText: ', storyText);
       document.title = 'Your New Story | Dream Forge Labs';
       statusDisplay.classList.add('hidden');
       statusDisplay.setAttribute('aria-hidden', 'true');
@@ -290,8 +291,13 @@
         .replace(/\r/g, '\n')    // lone CR → LF
         .replace(/\n{3,}/g, '\n\n'); // collapse huge gaps
     
-      // Split to paragraphs
-      const paras = normalized.split(/\n+/).filter(p => p.trim() !== '');
+      // Split to paragraphs with a stricter filter
+      const paras = normalized
+        .split(/\n+/)
+        // NEW, STRICTER FILTER: Ensures a paragraph has at least one letter or number.
+        .filter(p => /[a-zA-Z0-9]/.test(p));
+
+      console.debug('Paragraph: ', paras);
     
       // Paginate by word count
       const wordsPerPage = 200;
@@ -328,6 +334,9 @@
       if (pages.length === 0 && normalized.trim()) {
           pages.push(normalized.trim());
       }
+
+      console.log('DEBUG: Final Generated Pages:', pages);
+      console.log('DEBUG: Content of Page 2:', pages[1]);
     
       // Build DOM
       let html = '';
