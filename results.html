@@ -296,19 +296,38 @@
       // Paginate by word count
       const wordsPerPage = 200;
       const pages = [];
-      let bucket = [], count = 0;
-    
-      for (const p of paras) {
-        const c = p.trim() ? p.trim().split(/\s+/).length : 0;
-        if (bucket.length && count + c > wordsPerPage) {
-          pages.push(bucket.join('\n\n'));
-          bucket = [p]; count = c;
-        } else {
-          bucket.push(p); count += c;
+      
+      if (paras.length > 0) {
+        let currentPageBucket = [];
+        let currentWordCount = 0;
+      
+        for (const p of paras) {
+          const wordCount = p.trim() ? p.trim().split(/\s+/).length : 0;
+          if (wordCount === 0) continue; // Extra safety: skip empty paragraphs
+      
+          // If the current paragraph itself is larger than a whole page, or if adding it
+          // to a non-empty page would overflow, then the current page is finished.
+          if (currentPageBucket.length > 0 && (currentWordCount + wordCount > wordsPerPage)) {
+            pages.push(currentPageBucket.join('\n\n'));
+            currentPageBucket = []; // Start a new, empty page
+            currentWordCount = 0;
+          }
+      
+          // Add the current paragraph to the bucket and update the count
+          currentPageBucket.push(p);
+          currentWordCount += wordCount;
+        }
+      
+        // Add the last page if it has any content
+        if (currentPageBucket.length > 0) {
+          pages.push(currentPageBucket.join('\n\n'));
         }
       }
-      if (bucket.length) pages.push(bucket.join('\n\n'));
-      if (!pages.length && normalized.trim()) pages.push(normalized.trim());
+      
+      // Ensure at least one page exists if there's any text at all
+      if (pages.length === 0 && normalized.trim()) {
+          pages.push(normalized.trim());
+      }
     
       // Build DOM
       let html = '';
@@ -317,7 +336,7 @@
     
       for (let i = 0; i < pages.length; i++) {
         const paraHtml = pages[i]
-          .split('\n')
+          .split('\n\n')
           .map(line => `<p>${escapeHTML(line)}</p>`)
           .join('');
         html += `
