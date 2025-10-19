@@ -33,11 +33,11 @@
         }
     </style>
     <script>
-        // Set theme on initial load to prevent Flash of Unstyled Content (FOUC)
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-          document.documentElement.classList.add('dark')
+        // Set theme on initial load to prevent FOUC and default to light mode
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark');
         } else {
-          document.documentElement.classList.remove('dark')
+          document.documentElement.classList.remove('dark');
         }
     </script>
 </head>

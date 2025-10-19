@@ -50,12 +50,12 @@
             background: #111827; /* Gray 900 */
         }
         .section-title {
-            @apply text-3xl md:text-4xl font-bold text-center mb-12 relative;
+            @apply text-4xl md:text-5xl font-extrabold text-center mb-12 relative;
         }
         .section-title::after {
             content: '';
-            @apply block w-20 h-1 mx-auto mt-4 rounded;
-            background-color: #6B4FBF; /* Deep Purple */
+            @apply block w-24 h-1.5 mx-auto mt-4 rounded;
+            background-color: #F97316; /* Vibrant Orange */
         }
         ::selection {
             background-color: #6B4FBF; /* Deep Purple */
@@ -74,11 +74,11 @@
         }
     </style>
     <script>
-        // Set theme on initial load to prevent FOUC
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-          document.documentElement.classList.add('dark')
+        // Set theme on initial load to prevent FOUC and default to light mode
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark');
         } else {
-          document.documentElement.classList.remove('dark')
+          document.documentElement.classList.remove('dark');
         }
     </script>
 </head>
@@ -136,14 +136,24 @@
         <!-- About Us Section -->
         <section id="about" class="py-20 md:py-28 bg-white dark:bg-[#1F2937]">
             <div class="container mx-auto px-6">
-                <div class="max-w-3xl mx-auto">
-                    <h2 class="section-title text-gray-900 dark:text-gray-50">About Dream Forge Labs</h2>
-                    <p class="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed text-center">
-                        Founded by a team of technologists and storytellers, Dream Forge Labs is a creative technology studio shaping the next generation of human expression.
-                    </p>
-                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed text-center">
-                        We believe the future belongs to creators who dream boldly and build fearlessly — and our mission is to give them the technology to do both.
-                    </p>
+                <h2 class="section-title text-gray-900 dark:text-gray-50">About Us</h2>
+                <div class="grid md:grid-cols-2 gap-16 items-center max-w-6xl mx-auto mt-16">
+                    <!-- Image on the left -->
+                    <div>
+                        <img src="https://placehold.co/600x450/1F2937/FFF8E7?text=Our+Vision" alt="Abstract image representing the vision of Dream Forge Labs" class="rounded-lg shadow-2xl transform hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <!-- Text on the right -->
+                    <div class="text-left">
+                        <h3 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-100 mb-6 font-display leading-tight">Shaping the Next Generation of Human Expression</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                            Founded by a team of technologists and storytellers, Dream Forge Labs is a creative technology studio dedicated to building intelligent tools that bridge creativity and technology.
+                        </p>
+                        <blockquote class="border-l-4 border-[#F97316] pl-6 py-2 italic text-gray-700 dark:text-gray-200">
+                            <p class="text-xl leading-relaxed">
+                                "We believe the future belongs to creators who dream boldly and build fearlessly — and our mission is to give them the technology to do both."
+                            </p>
+                        </blockquote>
+                    </div>
                 </div>
             </div>
         </section>
@@ -174,90 +184,7 @@
         </div>
     </footer>
 
-    <script>
-        // --- Component Loader ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const cacheBuster = `?v=${new Date().getTime()}`;
-
-            const loadComponent = (componentUrl, placeholderId) => {
-                fetch(componentUrl + cacheBuster)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        return response.text();
-                    })
-                    .then(html => {
-                        document.getElementById(placeholderId).innerHTML = html;
-                    })
-                    .catch(error => {
-                        console.error(`Error fetching ${componentUrl}:`, error);
-                        document.getElementById(placeholderId).innerHTML =
-                            `<p class="text-center text-red-500 py-20">Error: Could not load section.</p>`;
-                    });
-            };
-
-            loadComponent('storyweaver/storyweaver.html', 'storyweaver-placeholder');
-            loadComponent('loom-ed/loom-ed.html', 'loomed-placeholder');
-        });
-
-        // --- Page-specific Scripts ---
-
-        // Mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
-
-        // Close mobile menu when a link is clicked
-        document.querySelectorAll('#mobile-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenu.classList.add('hidden');
-            });
-        });
-
-        // Header scroll effect
-        const header = document.getElementById('header');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.classList.add('shadow-lg', 'shadow-black/5');
-                header.classList.add('dark:shadow-black/20');
-            } else {
-                header.classList.remove('shadow-lg', 'shadow-black/5');
-                header.classList.remove('dark:shadow-black/20');
-            }
-        });
-
-        // Theme Toggle
-        const themeToggleButton = document.getElementById('theme-toggle');
-        const darkIcon = document.getElementById('theme-toggle-dark-icon');
-        const lightIcon = document.getElementById('theme-toggle-light-icon');
-
-        const setTheme = (isDark) => {
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                lightIcon.classList.remove('hidden'); // In dark mode, show the sun icon
-                darkIcon.classList.add('hidden');
-            } else {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                darkIcon.classList.remove('hidden'); // In light mode, show the moon icon
-                lightIcon.classList.add('hidden');
-            }
-        };
-
-        // Set initial state based on saved theme or system preference
-        const isCurrentlyDark = document.documentElement.classList.contains('dark');
-        setTheme(isCurrentlyDark);
-
-        // Listen for button clicks to toggle theme
-        themeToggleButton.addEventListener('click', () => {
-            setTheme(!document.documentElement.classList.contains('dark'));
-        });
-    </script>
-
+    <script src="assets/js/main.js" defer></script>
 </body>
 </html>
 
