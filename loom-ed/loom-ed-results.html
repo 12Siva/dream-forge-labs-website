@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoomEd Results - Dream Forge Labs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-purple': '#6B4FBF',
+                        'warm-cream': '#FFF8E7',
+                        'coral-pink': '#FF7B68',
+                        'ocean-teal': '#2DBFB8',
+                        'golden-yellow': '#FFB84D',
+                        'forest-green': '#4A7C59',
+                        'slate-gray': '#6B7280',
+                        'soft-red': '#E86C6C',
+                        'charcoal': '#2D3748',
+                        'medium-purple': '#8B7AB8',
+                    },
+                    fontFamily: {
+                        display: ['Fredoka', 'sans-serif'],
+                        body: ['Lexend', 'sans-serif'],
+                        ui: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;500&family=Lexend:wght@400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFF8E7; /* Warm Cream */
+        }
+        .dark body {
+            background: #2D3748; /* Charcoal */
+        }
+        ::selection {
+            background-color: #6B4FBF; /* Deep Purple */
+            color: #ffffff;
+        }
+        .dark ::selection {
+            color: #FFF8E7; /* Warm Cream */
+        }
+    </style>
+     <script>
+        // Set theme on initial load to prevent FOUC
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+    </script>
+</head>
+<body class="antialiased font-ui text-charcoal dark:text-warm-cream">
+    <!-- Header -->
+    <header class="bg-warm-cream/80 dark:bg-charcoal/80 backdrop-blur-md sticky top-0 z-50 border-b border-medium-purple dark:border-deep-purple">
+        <div class="container mx-auto px-6 py-4">
+            <nav class="flex items-center justify-between">
+                <a href="../index.html" class="text-2xl font-display font-semibold text-deep-purple dark:text-warm-cream flex items-center">
+                    <i class="fas fa-film mr-2 text-deep-purple"></i> Dream Forge Labs
+                </a>
+                 <a href="loomed-app.html" class="hidden md:block text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple transition-colors">Back to App</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-16">
+        <div class="max-w-3xl mx-auto text-center">
+             <h1 class="text-4xl md:text-5xl font-display font-extrabold text-deep-purple dark:text-warm-cream mb-4">LoomEd Results</h1>
+            <p class="text-xl text-charcoal dark:text-warm-cream">This is where the results of the LoomEd application will be displayed.</p>
+        </div>
+    </main>
+
+</body>
+</html>

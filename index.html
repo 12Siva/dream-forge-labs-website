@@ -3,23 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dream Forge Labs - Filming Technology Services</title>
+    <title>Dream Forge Labs</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // Configure Tailwind to use the 'class' strategy for dark mode
         tailwind.config = {
             darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-purple': '#6B4FBF',
+                        'warm-cream': '#FFF8E7',
+                        'coral-pink': '#FF7B68',
+                        'ocean-teal': '#2DBFB8',
+                        'golden-yellow': '#FFB84D',
+                        'forest-green': '#4A7C59',
+                        'slate-gray': '#6B7280',
+                        'soft-red': '#E86C6C',
+                        'charcoal': '#2D3748',
+                        'medium-purple': '#8B7AB8',
+                    },
+                    fontFamily: {
+                        display: ['Fredoka', 'sans-serif'],
+                        body: ['Lexend', 'sans-serif'],
+                        ui: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
         }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;500&family=Lexend:wght@400&display=swap" rel="stylesheet">
     <style>
         /* Base styles are for light mode */
         body {
-            font-family: 'Exo 2', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #F9FAFB; /* Gray 50 */
             transition: background-color 0.3s, color 0.3s;
+        }
+        .loom-ed-body {
+            background-color: #FFF8E7; /* Warm Cream */
+        }
+        .loom-ed-dark-body {
+            background: #111827; /* Gray 900 */
         }
         .section-title {
             @apply text-3xl md:text-4xl font-bold text-center mb-12 relative;
@@ -27,15 +55,18 @@
         .section-title::after {
             content: '';
             @apply block w-20 h-1 mx-auto mt-4 rounded;
-            background-color: #F97316; /* Orange 500 */
+            background-color: #6B4FBF; /* Deep Purple */
         }
         ::selection {
-            background-color: #F97316;
+            background-color: #6B4FBF; /* Deep Purple */
             color: #ffffff;
         }
 
         /* Dark Mode styles */
         .dark body {
+            background: #111827; /* Gray 900 */
+        }
+        .dark .loom-ed-body {
             background: #111827; /* Gray 900 */
         }
         .dark ::selection {
@@ -51,35 +82,37 @@
         }
     </script>
 </head>
-<body class="antialiased text-gray-800 dark:text-gray-300">
+<body class="antialiased font-ui text-charcoal dark:text-gray-300">
 
     <!-- Header -->
-    <header id="header" class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-gray-200 dark:border-gray-700">
+    <header id="header" class="bg-warm-cream/80 dark:bg-charcoal/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-medium-purple dark:border-deep-purple">
         <div class="container mx-auto px-6 py-4">
             <nav class="flex items-center justify-between">
-                <a href="#" class="text-2xl font-bold text-gray-900 dark:text-gray-50 flex items-center">
-                    <i class="fas fa-film mr-2 text-[#F97316]"></i> Dream Forge Labs
+                <a href="#" class="text-2xl font-display font-bold text-deep-purple dark:text-warm-cream flex items-center">
+                    <i class="fas fa-film mr-2 text-deep-purple"></i> Dream Forge Labs
                 </a>
                 <div class="flex items-center space-x-4">
                     <div class="hidden md:flex items-center space-x-8">
-                        <a href="#about" class="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors">About</a>
-                        <a href="#storyweaver" class="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors">StoryWeaver</a>
+                        <a href="#about" class="text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple transition-colors">About</a>
+                        <a href="#storyweaver" class="text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple transition-colors">StoryWeaver</a>
+                        <a href="#loom-ed" class="text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple transition-colors">LoomEd</a>
                     </div>
                        <!-- Theme Toggle Button -->
-                    <button id="theme-toggle" class="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <button id="theme-toggle" class="text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple transition-colors w-10 h-10 flex items-center justify-center rounded-lg hover:bg-warm-cream dark:hover:bg-charcoal">
                         <i class="fas fa-moon text-xl hidden" id="theme-toggle-dark-icon"></i>
                         <i class="fas fa-sun text-xl hidden" id="theme-toggle-light-icon"></i>
                     </button>
-                    <button id="mobile-menu-button" class="md:hidden text-gray-800 dark:text-gray-200 text-2xl">
+                    <button id="mobile-menu-button" class="md:hidden text-deep-purple dark:text-warm-cream text-2xl">
                         <i class="fas fa-bars"></i>
                     </button>
                 </div>
             </nav>
         </div>
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 bg-white dark:bg-gray-900">
-            <a href="#about" class="block py-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316]">About</a>
-            <a href="#storyweaver" class="block py-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316]">StoryWeaver</a>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 bg-warm-cream dark:bg-charcoal">
+            <a href="#about" class="block py-2 text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple">About</a>
+            <a href="#storyweaver" class="block py-2 text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple">StoryWeaver</a>
+            <a href="#loom-ed" class="block py-2 text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple">LoomEd</a>
         </div>
     </header>
 
@@ -89,13 +122,13 @@
         <section id="home" class="min-h-screen flex items-center pt-24 md:pt-0">
             <div class="container mx-auto px-6 text-center">
                 <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 dark:text-gray-50 leading-tight mb-6">
-                    Engineering the Future of Visual Storytelling.
+                    Engineering the Future of Human Imagination.
                 </h1>
                 <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-10">
-                    We provide cutting-edge technology services and custom solutions for filmmakers and content creators who dare to innovate.
+                    We build intelligent tools that bridge creativity and technology — empowering people to learn, create, and tell stories in new, meaningful ways.
                 </p>
                 <a href="#about" class="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30">
-                    Learn More
+                    Discover More
                 </a>
             </div>
         </section>
@@ -106,10 +139,10 @@
                 <div class="max-w-3xl mx-auto">
                     <h2 class="section-title text-gray-900 dark:text-gray-50">About Dream Forge Labs</h2>
                     <p class="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed text-center">
-                        Founded by a team of filmmakers and engineers, Dream Forge Labs was born from a passion for pushing creative boundaries through technology. We saw the gap between ambitious creative vision and the practical tools available on set.
+                        Founded by a team of technologists and storytellers, Dream Forge Labs is a creative technology studio shaping the next generation of human expression.
                     </p>
                     <p class="text-gray-700 dark:text-gray-300 leading-relaxed text-center">
-                        Our mission is to empower creators by making complex technology accessible and reliable. We're not just service providers; we're your technical partners, dedicated to bringing your most challenging ideas to life.
+                        We believe the future belongs to creators who dream boldly and build fearlessly — and our mission is to give them the technology to do both.
                     </p>
                 </div>
             </div>
@@ -118,6 +151,11 @@
         <!-- StoryWeaver Section Placeholder -->
         <div id="storyweaver-placeholder">
             <!-- StoryWeaver content will be loaded here by JavaScript -->
+        </div>
+
+        <!-- LoomEd Section Placeholder -->
+        <div id="loomed-placeholder">
+            <!-- LoomEd content will be loaded here by JavaScript -->
         </div>
         
     </main>
@@ -138,28 +176,30 @@
 
     <script>
         // --- Component Loader ---
-        // This script fetches HTML components and injects them into placeholder elements.
         document.addEventListener('DOMContentLoaded', () => {
-            // Added a cache-busting parameter to the fetch request.
             const cacheBuster = `?v=${new Date().getTime()}`;
-            fetch('storyweaver.html' + cacheBuster)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    document.getElementById('storyweaver-placeholder').innerHTML = html;
-                })
-                .catch(error => {
-                    console.error('Error fetching component:', error);
-                    // Display an error message in the placeholder
-                    document.getElementById('storyweaver-placeholder').innerHTML = 
-                        `<p class="text-center text-red-500 py-20">Error: Could not load StoryWeaver section.</p>`;
-                });
-        });
 
+            const loadComponent = (componentUrl, placeholderId) => {
+                fetch(componentUrl + cacheBuster)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        document.getElementById(placeholderId).innerHTML = html;
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${componentUrl}:`, error);
+                        document.getElementById(placeholderId).innerHTML =
+                            `<p class="text-center text-red-500 py-20">Error: Could not load section.</p>`;
+                    });
+            };
+
+            loadComponent('storyweaver/storyweaver.html', 'storyweaver-placeholder');
+            loadComponent('loom-ed/loom-ed.html', 'loomed-placeholder');
+        });
 
         // --- Page-specific Scripts ---
 
