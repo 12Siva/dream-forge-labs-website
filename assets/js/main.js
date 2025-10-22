@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add click listener to the button
         themeToggleButton.addEventListener('click', () => {
             // Toggle theme on click
-            setTheme(!document.documentElement.classList.contains('dork'));
+            setTheme(!document.documentElement.classList.contains('dark'));
         });
     }
 
