@@ -84,8 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Check if we are on the homepage before loading components
-    if (document.getElementById('storyweaver-placeholder') && document.getElementById('loomed-placeholder')) {
-        loadComponent('storyweaver/storyweaver.html', 'storyweaver-placeholder');
-        loadComponent('loom-ed/loom-ed.html', 'loomed-placeholder');
+    if (document.getElementById('storyweaver') && document.getElementById('loom-ed')) {
+        loadComponent('storyweaver/storyweaver.html', 'storyweaver');
+        loadComponent('loom-ed/loom-ed.html', 'loom-ed');
     }
 });
