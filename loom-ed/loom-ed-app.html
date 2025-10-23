@@ -40,14 +40,22 @@
             background-color: #FFF8E7; /* Warm Cream */
         }
         .dark body {
-            background: #2D3748; /* Charcoal */
+            background: #1a202c; /* Dark Charcoal */
         }
         ::selection {
             background-color: #6B4FBF; /* Deep Purple */
             color: #ffffff;
         }
         .dark ::selection {
-            color: #FFF8E7; /* Warm Cream */
+            background-color: #FFB84D; /* Golden Yellow */
+            color: #1a202c;
+        }
+        .highlight {
+            background-color: #FFB84D;
+            cursor: pointer;
+        }
+        .dark .highlight {
+            background-color: #6B4FBF;
         }
     </style>
     <script>
@@ -66,7 +74,7 @@
         <div class="container mx-auto px-6 py-4">
             <nav class="flex items-center justify-between">
                 <a href="../index.html" class="text-2xl font-display font-semibold text-deep-purple dark:text-warm-cream flex items-center">
-                    <i class="fas fa-film mr-2 text-deep-purple"></i> Dream Forge Labs
+                    <i class="fas fa-book-reader mr-2 text-deep-purple dark:text-warm-cream"></i> LoomEd
                 </a>
                 <div class="flex items-center space-x-4">
                     <a href="../index.html#loom-ed" class="hidden md:block text-medium-purple dark:text-warm-cream hover:text-deep-purple dark:hover:text-deep-purple transition-colors">Back to Home</a>
@@ -80,20 +88,159 @@
     </header>
 
     <!-- Main App Content -->
-    <main class="container mx-auto px-6 py-16">
-        <div class="max-w-3xl mx-auto text-center">
-            <h1 class="text-4xl md:text-5xl font-display font-extrabold text-deep-purple dark:text-warm-cream mb-4">LoomEd Application</h1>
-            <p class="text-xl text-charcoal dark:text-warm-cream">A new educational experience is on the way.</p>
-        </div>
+    <main class="container mx-auto px-6 py-8">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Sidebar with Story List -->
+            <aside class="w-full md:w-1/4">
+                <div class="bg-white dark:bg-charcoal/50 p-6 rounded-xl shadow-lg border border-medium-purple dark:border-deep-purple">
+                    <h2 class="text-2xl font-display font-bold text-deep-purple dark:text-warm-cream mb-4">Short Stories</h2>
+                    <div id="story-list" class="space-y-2">
+                        <!-- Story links will be injected here -->
+                        <p class="text-slate-gray dark:text-gray-400">Loading stories...</p>
+                    </div>
+                </div>
+            </aside>
 
-        <div class="max-w-2xl mx-auto mt-12 bg-warm-cream dark:bg-charcoal/50 p-8 rounded-xl shadow-lg border border-medium-purple dark:border-deep-purple text-center">
-             <i class="fas fa-cogs text-6xl text-ocean-teal mb-6"></i>
-            <h2 class="text-2xl font-display font-bold text-deep-purple dark:text-warm-cream mb-2">Coming Soon!</h2>
-            <p class="text-xl text-charcoal dark:text-warm-cream">We're hard at work building this new platform. Check back soon for updates!</p>
+            <!-- Main Content Area for Reading -->
+            <div class="w-full md:w-3/4">
+                <div id="story-content-area" class="bg-white dark:bg-charcoal/50 p-8 rounded-xl shadow-lg border border-medium-purple dark:border-deep-purple prose dark:prose-invert max-w-none prose-lg prose-p:leading-relaxed">
+                    <p id="story-placeholder">Please select a story from the list to begin reading.</p>
+                    <div id="story-text" class="hidden"></div>
+                </div>
+            </div>
         </div>
     </main>
 
+    <!-- Pop-up for Highlighting and Notes -->
+    <div id="tooltip" class="hidden absolute bg-charcoal dark:bg-warm-cream text-white dark:text-charcoal p-2 rounded-lg shadow-xl z-50">
+        <button id="highlight-btn" class="px-3 py-1 hover:bg-deep-purple dark:hover:bg-golden-yellow rounded">Highlight</button>
+        <button id="note-btn" class="px-3 py-1 hover:bg-deep-purple dark:hover:bg-golden-yellow rounded">Take Note</button>
+    </div>
+
     <script>
+        // --- Configuration ---
+        const API_BASE_URL = 'https://d2drk2p096.execute-api.us-east-2.amazonaws.com/prod';
+
+        // --- DOM Elements ---
+        const storyListContainer = document.getElementById('story-list');
+        const storyContentArea = document.getElementById('story-content-area');
+        const storyPlaceholder = document.getElementById('story-placeholder');
+        const storyTextContainer = document.getElementById('story-text');
+        const tooltip = document.getElementById('tooltip');
+        const highlightBtn = document.getElementById('highlight-btn');
+        const noteBtn = document.getElementById('note-btn');
+
+        let selectedRange = null;
+
+        // --- Story Loading and Display ---
+        async function fetchStories() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/stories`);
+                if (!response.ok) throw new Error('Failed to fetch stories.');
+                const stories = await response.json();
+                displayStoryList(stories);
+            } catch (error) {
+                console.error('Error fetching stories:', error);
+                storyListContainer.innerHTML = `<p class="text-soft-red">Could not load stories.</p>`;
+            }
+        }
+
+        function displayStoryList(stories) {
+            storyListContainer.innerHTML = '';
+            stories.forEach(story => {
+                const button = document.createElement('button');
+                button.className = 'block w-full text-left px-4 py-2 rounded-lg text-medium-purple dark:text-gray-300 hover:bg-warm-cream dark:hover:bg-charcoal transition-colors';
+                button.textContent = story.title;
+                button.onclick = () => fetchStoryContent(story.id);
+                storyListContainer.appendChild(button);
+            });
+        }
+
+        async function fetchStoryContent(storyId) {
+            try {
+                storyPlaceholder.textContent = 'Loading story...';
+                storyTextContainer.classList.add('hidden');
+                const response = await fetch(`${API_BASE_URL}/stories/${storyId}`);
+                if (!response.ok) throw new Error('Failed to fetch story content.');
+                const story = await response.json();
+                displayStoryContent(story.content);
+            } catch (error) {
+                console.error('Error fetching story content:', error);
+                storyPlaceholder.textContent = 'Could not load the selected story.';
+            }
+        }
+
+        function displayStoryContent(content) {
+            storyPlaceholder.classList.add('hidden');
+            storyTextContainer.classList.remove('hidden');
+            storyTextContainer.innerHTML = content.split('\n').map(p => `<p>${p}</p>`).join('');
+        }
+        
+        // --- Highlighting and Note-taking ---
+        storyTextContainer.addEventListener('mouseup', (event) => {
+            const selection = window.getSelection();
+            if (selection.toString().trim().length > 0) {
+                selectedRange = selection.getRangeAt(0);
+                const rect = selectedRange.getBoundingClientRect();
+                tooltip.style.left = `${window.scrollX + rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+                tooltip.style.top = `${window.scrollY + rect.top - tooltip.offsetHeight - 10}px`;
+                tooltip.classList.remove('hidden');
+            } else {
+                tooltip.classList.add('hidden');
+            }
+        });
+        
+        document.addEventListener('mousedown', (event) => {
+             if (!tooltip.contains(event.target) && !storyTextContainer.contains(event.target)) {
+                tooltip.classList.add('hidden');
+            }
+        });
+
+
+        highlightBtn.addEventListener('click', () => {
+            if (selectedRange) {
+                const span = document.createElement('span');
+                span.className = 'highlight';
+                span.onclick = (e) => {
+                     if(confirm('Remove highlight?')) {
+                        const parent = e.target.parentNode;
+                        while(e.target.firstChild) parent.insertBefore(e.target.firstChild, e.target);
+                        parent.removeChild(e.target);
+                     }
+                };
+                try {
+                    span.appendChild(selectedRange.extractContents());
+                    selectedRange.insertNode(span);
+                } catch(e) {
+                     console.error("Could not highlight this selection.", e);
+                }
+                window.getSelection().removeAllRanges();
+                tooltip.classList.add('hidden');
+                selectedRange = null;
+            }
+        });
+
+        noteBtn.addEventListener('click', () => {
+            if (selectedRange) {
+                const noteText = prompt("Enter your note:", "");
+                if (noteText) {
+                    // In a real app, you would save this to a database.
+                    // For now, we'll just log it.
+                    const highlightedText = selectedRange.toString();
+                    console.log(`Note added for text: "${highlightedText}"\nNote: "${noteText}"`);
+                    alert('Note saved! (Check the console)');
+                }
+                window.getSelection().removeAllRanges();
+                tooltip.classList.add('hidden');
+                selectedRange = null;
+            }
+        });
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStories();
+        });
+
         // --- Theme Toggle Script ---
         const themeToggleButton = document.getElementById('theme-toggle');
         const darkIcon = document.getElementById('theme-toggle-dark-icon');
@@ -102,20 +249,28 @@
             if (isDark) {
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
-                lightIcon.classList.remove('hidden');
-                darkIcon.classList.add('hidden');
+                if (lightIcon && darkIcon) {
+                    lightIcon.classList.remove('hidden');
+                    darkIcon.classList.add('hidden');
+                }
             } else {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
-                darkIcon.classList.remove('hidden');
-                lightIcon.classList.add('hidden');
+                if (lightIcon && darkIcon) {
+                    darkIcon.classList.remove('hidden');
+                    lightIcon.classList.add('hidden');
+                }
             }
         };
-        setTheme(document.documentElement.classList.contains('dark'));
-        themeToggleButton.addEventListener('click', () => {
-            setTheme(!document.documentElement.classList.contains('dark'));
-        });
-    </script>
 
+        const isCurrentlyDark = document.documentElement.classList.contains('dark');
+        setTheme(isCurrentlyDark);
+
+        if (themeToggleButton) {
+            themeToggleButton.addEventListener('click', () => {
+                setTheme(!document.documentElement.classList.contains('dark'));
+            });
+        }
+    </script>
 </body>
 </html>
