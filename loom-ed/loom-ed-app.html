@@ -274,39 +274,45 @@
 
         /**
          * Fetches and displays the content for a specific story.
-         * @param {string} storyId - The ID of the story to fetch.
+         * @param {string} storyId - The S3 key / filename (e.g., "the_tell_tale_heart.pdf").
          */
         async function fetchStoryContent(storyId) {
-            try {
-                // Show loading state in the main panel
-                storyPlaceholder.classList.remove('hidden');
-                storyPlaceholder.innerHTML = `
-                    <i class="fas fa-spinner fa-spin text-6xl text-medium-purple dark:text-gray-500 mb-6"></i>
-                    <p class="text-lg">Loading story...</p>
-                `;
-                storyTextContainer.classList.add('hidden');
-                
-                const response = await fetch(`${API_BASE_URL}/stories/${storyId}`);
-                if (!response.ok) {
-                    throw new Error(`Server responded with status ${response.status}`);
-                }
-                
-                const story = await response.json();
-                displayStoryContent(story.title, story.content);
+        try {
+            // Loading state
+            storyPlaceholder.classList.remove('hidden');
+            storyPlaceholder.innerHTML = `
+            <i class="fas fa-spinner fa-spin text-6xl text-medium-purple dark:text-gray-500 mb-6"></i>
+            <p class="text-lg">Loading story...</p>
+            `;
+            storyTextContainer.classList.add('hidden');
 
-            } catch (error) {
-                console.error('Error fetching story content:', error);
-                storyPlaceholder.innerHTML = `
-                    <i class="fas fa-exclamation-circle text-6xl text-soft-red mb-6"></i>
-                    <h3 class="text-2xl font-display font-semibold text-charcoal dark:text-warm-cream mb-2">
-                        Could not load story
-                    </h3>
-                    <p class="text-lg text-slate-gray dark:text-gray-400">
-                        ${error.message}
-                    </p>
-                `;
+            // NOTE: use query param, not path
+            const url = `${API_BASE_URL}/story?id=${encodeURIComponent(storyId)}`;
+            const response = await fetch(url, { method: 'GET', mode: 'cors' });
+
+            if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}`);
             }
+
+            const story = await response.json(); // { id, content }
+            // Your Lambda doesn't return title; fall back to id or a local map.
+            const title = story.title ?? storyId;
+            displayStoryContent(title, story.content);
+
+        } catch (error) {
+            console.error('Error fetching story content:', error);
+            storyPlaceholder.innerHTML = `
+            <i class="fas fa-exclamation-circle text-6xl text-soft-red mb-6"></i>
+            <h3 class="text-2xl font-display font-semibold text-charcoal dark:text-warm-cream mb-2">
+                Could not load story
+            </h3>
+            <p class="text-lg text-slate-gray dark:text-gray-400">
+                ${error.message}
+            </p>
+            `;
         }
+        }
+
 
         /**
          * Displays the story text in the main content area.
