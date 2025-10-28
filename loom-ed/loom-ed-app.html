@@ -102,7 +102,6 @@
             50% { opacity: 0.5; }
         }
         
-        /* Custom Modal styles removed, as we'll use the ones from your local file */
     </style>
      <script>
         // Set theme on initial load to prevent FOUC and default to light mode
@@ -165,6 +164,15 @@
             <!-- Main Content Area for Reading -->
             <div class="w-full md:w-2/3 lg:w-3/4">
                 <div id="story-content-area" class="bg-white dark:bg-charcoal/50 p-6 sm:p-8 md:p-12 rounded-xl shadow-lg border border-medium-purple dark:border-deep-purple min-h-[70vh]">
+                    
+                    <!-- NEW: Story Actions -->
+                    <div id="story-actions" class="flex justify-end mb-4 -mt-4 -mr-2 sm:-mr-4 md:-mr-8 hidden">
+                        <button id="ai-summary-btn" class="bg-deep-purple hover:bg-deep-purple/80 text-white dark:bg-golden-yellow dark:text-charcoal dark:hover:bg-golden-yellow/80 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center shadow-md hover:shadow-lg">
+                            <i class="fas fa-wand-magic-sparkles mr-2"></i>
+                            AI Summary
+                        </button>
+                    </div>
+
                     <div id="story-placeholder" class="flex flex-col items-center justify-center h-full min-h-[50vh] text-center">
                          <i class="fas fa-book-open text-6xl text-medium-purple dark:text-gray-500 mb-6"></i>
                         <h2 class="text-3xl font-display font-bold text-deep-purple dark:text-warm-cream mb-2">Welcome to LoomEd!</h2>
@@ -185,8 +193,6 @@
         <button id="note-btn" class="px-3 py-1 hover:bg-deep-purple dark:hover:bg-golden-yellow rounded transition-colors"><i class="fas fa-pencil-alt mr-1"></i> Take Note</button>
     </div>
 
-    <!-- Custom Modals removed, will be replaced by your local versions -->
-
 
     <script>
         // --- Configuration ---
@@ -194,6 +200,9 @@
         const STORIES_API_URL = `${API_BASE_URL}/stories`;
         const STORY_CONTENT_API_URL = `${API_BASE_URL}/story`; // Updated to /story from /stories
         const ANNOTATIONS_API_URL = `${API_BASE_URL}/annotations`;
+        // NEW: Add the Summary API URL
+        const SUMMARY_API_URL = `${API_BASE_URL}/summary`;
+
 
         // --- DOM Elements ---
         const storyListContainer = document.getElementById('story-list');
@@ -207,18 +216,11 @@
         const tooltip = document.getElementById('tooltip');
         const highlightBtn = document.getElementById('highlight-btn');
         const noteBtn = document.getElementById('note-btn');
-
-        // --- Modal Elements (from your local file) ---
-        // These are no longer needed as we'll use your functions
         
         // --- App State ---
         let selectedRange = null;
         let currentStoryId = null;
-        // let modalResolve = null; // No longer needed
-        let activeStoryButton = null; // Added from your local file's logic
-
-        // --- Custom Modal Functions (Reverting to your local file's functions) ---
-        // Functions customAlert, customConfirm, customPrompt removed
+        let activeStoryButton = null; 
         
         // --- User ID Management (New) ---
         
@@ -275,14 +277,12 @@
          * Fetches the list of stories from the API and displays them.
          */
         async function fetchStories() {
-            // Using your local file's loading state function
             showLoadingState(); 
             
             try {
                 const response = await fetch(STORIES_API_URL);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    // Using your local file's error state function
                     showErrorState(errorData.error || `Network response was not ok (status: ${response.status})`);
                     return; // Stop execution if error
                 }
@@ -290,7 +290,6 @@
                 displayStoryList(stories);
             } catch (error) {
                 console.error('Error fetching stories:', error);
-                // Using your local file's error state function
                 showErrorState(error.message);
             }
         }
@@ -308,12 +307,10 @@
             
             stories.forEach(story => {
                 const button = document.createElement('button');
-                // Using the class list from your local file
                 button.className = 'block w-full text-left px-4 py-2 rounded-lg text-deep-purple dark:text-gray-300 hover:bg-warm-cream dark:hover:bg-charcoal/70 transition-colors';
                 button.textContent = story.title;
                 button.dataset.storyId = story.id;
                 button.onclick = () => {
-                     // Using the activeStoryButton logic from your local file
                     if (activeStoryButton) {
                         activeStoryButton.classList.remove('bg-warm-cream', 'dark:bg-charcoal/70', 'font-semibold');
                     }
@@ -335,6 +332,9 @@
             if (currentStoryId === storyId) return; 
             currentStoryId = storyId;
             
+            // NEW: Hide actions on load
+            document.getElementById('story-actions').classList.add('hidden');
+            
             storyPlaceholder.classList.remove('hidden');
             storyPlaceholder.innerHTML = `
                 <i class="fas fa-spinner fa-spin text-6xl text-medium-purple dark:text-gray-500 mb-6"></i>
@@ -352,18 +352,25 @@
                 }
                 const story = await response.json();
                 
-                // Display story content (using logic from your local file)
+                // Display story content
                 const title = story.title ?? storyId.replace('.pdf', '').replace(/_/g, ' '); // Get title
                 const paragraphs = story.content.split('\n').filter(p => p.trim() !== '').map(p => `<p class="select-text">${p}</p>`).join('');
                 storyTextContainer.innerHTML = `<h1>${title}</h1>${paragraphs}`;
                 storyPlaceholder.classList.add('hidden');
                 storyTextContainer.classList.remove('hidden');
                 
-                // After content is loaded, load annotations (New)
+                // NEW: Show actions
+                document.getElementById('story-actions').classList.remove('hidden');
+                
+                // After content is loaded, load annotations
                 await loadAnnotationsForStory(storyId);
 
             } catch (error) {
                 console.error('Error fetching story content:', error);
+                
+                // NEW: Ensure actions are hidden on error
+                document.getElementById('story-actions').classList.add('hidden');
+
                 storyPlaceholder.classList.remove('hidden');
                 storyPlaceholder.innerHTML = `
                     <i class="fas fa-exclamation-circle text-6xl text-soft-red dark:text-coral-pink mb-6"></i>
@@ -372,7 +379,7 @@
             }
         }
 
-        // --- New Functions for AWS Integration ---
+        // --- Functions for AWS Integration ---
 
         /**
          * Loads all annotations for the current story from the API.
@@ -463,7 +470,6 @@
                 
             } catch (error) {
                 console.error('Error saving annotation:', error);
-                // Using your local file's toast function
                 showToast(`Error: Could not save annotation.`);
             }
         }
@@ -502,12 +508,11 @@
          */
         function addAnnotationClickListeners() {
             storyTextContainer.querySelectorAll('.highlight, .note-highlight').forEach(span => {
-                span.onclick = (e) => { // Removed async
+                span.onclick = (e) => { 
                     e.stopPropagation(); 
                     const type = span.classList.contains('note-highlight') ? 'note' : 'highlight';
                     const text = span.textContent;
                     
-                    // Using your local file's showModal function
                     showModal(
                         `Remove this ${type}?`, 
                         () => {
@@ -538,10 +543,18 @@
         // 1. Initial page load
         document.addEventListener('DOMContentLoaded', () => {
             fetchStories();
-            // Theme toggle logic moved to the end
+            
+            // NEW: AI Summary Button Listener
+            document.getElementById('ai-summary-btn').addEventListener('click', () => {
+                if (currentStoryId) {
+                    fetchAiSummary(currentStoryId);
+                } else {
+                    showToast('Please select a story first.');
+                }
+            });
         });
         
-        // 2. Retry Button (using event delegation from your local file)
+        // 2. Retry Button (using event delegation)
         storyListContainer.addEventListener('click', (event) => {
             if (event.target && event.target.id === 'retry-button') {
                 fetchStories(); // Re-run the fetch function
@@ -551,7 +564,7 @@
         // 3. Text Selection (Mouse Up)
         storyTextContainer.addEventListener('mouseup', (event) => {
             // Don't show tooltip if a modal is open
-            if (document.getElementById('modal-overlay') || document.getElementById('prompt-overlay')) {
+            if (document.getElementById('modal-overlay') || document.getElementById('prompt-overlay') || document.getElementById('loading-modal-overlay') || document.getElementById('info-modal-overlay')) {
                 return;
             }
 
@@ -595,16 +608,6 @@
                 // Save to AWS
                 await saveAnnotation(annotation);
                 
-                // Visual part from your local file (modified)
-                // We don't do this manually anymore, we let loadAnnotationsForStory handle it
-                // const span = document.createElement('span');
-                // span.className = 'highlight';
-                // ...
-                // try {
-                //     span.appendChild(selectedRange.extractContents());
-                //     selectedRange.insertNode(span);
-                // } catch(e) { ... }
-                
                 window.getSelection().removeAllRanges();
                 tooltip.classList.add('hidden');
                 selectedRange = null;
@@ -616,7 +619,6 @@
             if (selectedRange) {
                 const text = selectedRange.toString().trim();
                 
-                // Using your local file's showPrompt
                 showPrompt('Enter your note:', async (noteText) => {
                     if (noteText) { 
                         const annotation = {
@@ -640,7 +642,7 @@
             }
         });
 
-        // --- UI Helper Functions (Pasted from your local file) ---
+        // --- UI Helper Functions ---
 
         /**
          * Displays a simple toast message at the top of the screen.
@@ -676,7 +678,7 @@
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'modal-overlay';
             // Increased z-index
-            modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center';
+            modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4';
             
             modalOverlay.innerHTML = `
                 <div class="bg-white dark:bg-charcoal p-6 rounded-lg shadow-xl w-full max-w-sm">
@@ -713,7 +715,7 @@
             const promptOverlay = document.createElement('div');
             promptOverlay.id = 'prompt-overlay';
             // Increased z-index
-            promptOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center';
+            promptOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4';
             
             promptOverlay.innerHTML = `
                 <form id="prompt-form" class="bg-white dark:bg-charcoal p-6 rounded-lg shadow-xl w-full max-w-sm">
@@ -745,8 +747,142 @@
             };
         }
 
+        // --- NEW: AI Summary Functions ---
 
-        // --- Theme Toggle Script (from your local file) ---
+        /**
+         * Fetches an AI-generated summary for the current story.
+         * @param {string} storyId - The ID (S3 key) of the story.
+         */
+        async function fetchAiSummary(storyId) {
+            // 1. Show loading modal
+            showLoadingModal('Generating AI Summary...');
+
+            try {
+                const response = await fetch(`${SUMMARY_API_URL}?storyId=${encodeURIComponent(storyId)}`);
+                
+                const data = await response.json();
+
+                // Close loading modal
+                closeLoadingModal();
+
+                if (!response.ok) {
+                    // Use data.error from Lambda, or a default
+                    throw new Error(data.error || `Network response was not ok (status: ${response.status})`);
+                }
+
+                if (!data.summary) {
+                    throw new Error("Summary was not found in the response.");
+                }
+
+                // 2. Display the summary, replacing the original text
+                const formattedSummary = data.summary.split('\n')
+                    .filter(p => p.trim() !== '')
+                    .map(p => `<p class="mb-3">${p}</p>`) // Added spacing
+                    .join('');
+                
+                storyTextContainer.innerHTML = `
+                    <h1 class="text-deep-purple dark:text-warm-cream mb-4">AI-Generated Summary</h1>
+                    ${formattedSummary}
+                `;
+                
+                // Hide the tooltip and clear selection, as it's no longer relevant
+                tooltip.classList.add('hidden');
+                window.getSelection().removeAllRanges();
+                selectedRange = null;
+
+            } catch (error) {
+                console.error('Error fetching AI summary:', error);
+                closeLoadingModal();
+                // Error is still shown in a modal
+                showInfoModal('Error', `Could not generate summary: ${error.message}`);
+            }
+        }
+
+        /**
+         * Displays a persistent loading modal.
+         * @param {string} message - The loading message.
+         */
+        function showLoadingModal(message) {
+            // Close any existing modal
+            closeLoadingModal();
+
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'loading-modal-overlay';
+            // Increased z-index
+            modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4';
+            
+            modalOverlay.innerHTML = `
+                <div class="bg-white dark:bg-charcoal p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
+                    <i class="fas fa-spinner fa-spin text-4xl text-deep-purple dark:text-golden-yellow mb-4"></i>
+                    <p class="text-lg text-charcoal dark:text-warm-cream">${message}</p>
+                </div>
+            `;
+            
+            document.body.appendChild(modalOverlay);
+        }
+
+        /**
+         * Closes the loading modal.
+         */
+        function closeLoadingModal() {
+            const modalOverlay = document.getElementById('loading-modal-overlay');
+            if (modalOverlay && document.body.contains(modalOverlay)) {
+                document.body.removeChild(modalOverlay);
+            }
+        }
+
+        /**
+         * Displays a custom modal with info and an "OK" button.
+         * @param {string} title - The modal title.
+         * @param {string} message - The info message (will be formatted).
+         */
+        function showInfoModal(title, message) {
+            // Close any other modals first
+            closeLoadingModal();
+            const existingInfoModal = document.getElementById('info-modal-overlay');
+            if (existingInfoModal) document.body.removeChild(existingInfoModal);
+
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'info-modal-overlay';
+            // Increased z-index
+            modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4';
+            
+            // Format the message with paragraphs for newlines
+            const formattedMessage = message.split('\n').filter(p => p.trim() !== '').map(p => `<p class="mb-3">${p}</p>`).join('');
+
+            modalOverlay.innerHTML = `
+                <div class="bg-white dark:bg-charcoal p-6 rounded-lg shadow-xl w-full max-w-md" id="info-modal-content">
+                    <h3 class="text-xl font-display font-bold text-deep-purple dark:text-warm-cream mb-4">${title}</h3>
+                    <div classa="text-charcoal dark:text-warm-cream max-h-[60vh] overflow-y-auto pr-2">
+                        ${formattedMessage}
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button id="info-modal-ok" class="px-4 py-2 rounded-lg bg-deep-purple text-white hover:bg-deep-purple/80 transition-colors">OK</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modalOverlay);
+
+            const closeBtn = document.getElementById('info-modal-ok');
+            const overlay = document.getElementById('info-modal-overlay');
+
+            closeBtn.onclick = () => {
+                if (overlay && document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+            };
+
+            // Also close if clicking overlay
+            overlay.onclick = (e) => {
+                 // Check if click is on the overlay itself, not the content
+                 if (e.target.id === 'info-modal-overlay') {
+                     closeBtn.click();
+                 }
+            };
+        }
+
+        // --- Theme Toggle Script ---
         const themeToggleButton = document.getElementById('theme-toggle');
         const darkIcon = document.getElementById('theme-toggle-dark-icon');
         const lightIcon = document.getElementById('theme-toggle-light-icon');
