@@ -167,9 +167,9 @@
                     
                     <!-- NEW: Story Actions -->
                     <div id="story-actions" class="flex justify-end mb-4 -mt-4 -mr-2 sm:-mr-4 md:-mr-8 hidden">
-                        <button id="ai-summary-btn" class="bg-deep-purple hover:bg-deep-purple/80 text-white dark:bg-golden-yellow dark:text-charcoal dark:hover:bg-golden-yellow/80 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center shadow-md hover:shadow-lg">
+                        <button id="ai-summary-btn" class="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold px-4 py-2 rounded-lg text-sm transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 flex items-center">
                             <i class="fas fa-wand-magic-sparkles mr-2"></i>
-                            AI Summary
+                            Get AI Summary
                         </button>
                     </div>
 
@@ -747,8 +747,6 @@
             };
         }
 
-        // --- NEW: AI Summary Functions ---
-
         /**
          * Fetches an AI-generated summary for the current story.
          * @param {string} storyId - The ID (S3 key) of the story.
@@ -878,7 +876,7 @@
                  // Check if click is on the overlay itself, not the content
                  if (e.target.id === 'info-modal-overlay') {
                      closeBtn.click();
-                 }
+                 }x
             };
         }
 
@@ -916,4 +914,5 @@
     </script>
 </body>
 </html>
+
 
