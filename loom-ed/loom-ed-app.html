@@ -56,7 +56,7 @@
         
         /* Highlight Styling */
         .highlight {
-            background-color: rgba(255, 184, 77, 0.7); /* Golden Yellow with transparency */
+            background-color: rgba(255, 184, 77, 1); /* Golden Yellow - fully opaque */
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -64,7 +64,7 @@
             background-color: rgba(255, 184, 77, 1);
         }
         .dark .highlight {
-            background-color: rgba(107, 79, 191, 0.7); /* Deep Purple with transparency */
+            background-color: rgba(107, 79, 191, 1); /* Deep Purple - fully opaque */
         }
         .dark .highlight:hover {
             background-color: rgba(107, 79, 191, 1);
@@ -72,7 +72,7 @@
         
         /* Note Styling */
         .note-highlight {
-            background-color: rgba(45, 191, 184, 0.7); /* Ocean Teal with transparency */
+            background-color: rgba(45, 191, 184, 1); /* Ocean Teal - fully opaque */
             cursor: pointer;
             border-bottom: 2px dotted #0f5e5b;
             transition: background-color 0.2s;
@@ -81,7 +81,7 @@
              background-color: rgba(45, 191, 184, 1);
         }
         .dark .note-highlight {
-            background-color: rgba(255, 123, 104, 0.6); /* Coral Pink with transparency */
+            background-color: rgba(255, 123, 104, 1); /* Coral Pink - fully opaque */
             border-bottom: 2px dotted #FF7B68;
         }
         .dark .note-highlight:hover {
@@ -196,7 +196,7 @@
 
     <script>
         // --- Configuration ---
-        const API_BASE_URL = 'https://dgv9q2uuuf.execute-api.us-east-2.amazonaws.com/Prod';
+        const API_BASE_URL = 'https://ze6ud84gyb.execute-api.us-east-2.amazonaws.com/Prod';
         const STORIES_API_URL = `${API_BASE_URL}/stories`;
         const STORY_CONTENT_API_URL = `${API_BASE_URL}/story`; // Updated to /story from /stories
         const ANNOTATIONS_API_URL = `${API_BASE_URL}/annotations`;
@@ -235,6 +235,19 @@
                 localStorage.setItem('loomEdUserId', userId);
             }
             return userId;
+        }
+
+        /**
+         * Strips the file extension from a filename.
+         * @param {string} filename - The filename to process.
+         * @returns {string} The filename without its extension.
+         */
+        function stripFileExtension(filename) {
+            const lastDotIndex = filename.lastIndexOf('.');
+            if (lastDotIndex === -1) {
+                return filename; // No extension found
+            }
+            return filename.substring(0, lastDotIndex);
         }
 
         // --- API & Data Functions ---
@@ -309,7 +322,7 @@
                 const button = document.createElement('button');
                 button.className = 'block w-full text-left px-4 py-2 rounded-lg text-deep-purple dark:text-gray-300 hover:bg-warm-cream dark:hover:bg-charcoal/70 transition-colors';
                 button.textContent = story.title;
-                button.dataset.storyId = story.id;
+                button.dataset.storyId = stripFileExtension(story.id);
                 button.onclick = () => {
                     if (activeStoryButton) {
                         activeStoryButton.classList.remove('bg-warm-cream', 'dark:bg-charcoal/70', 'font-semibold');
@@ -345,7 +358,7 @@
 
             try {
                 // Fetch story content
-                const response = await fetch(`${STORY_CONTENT_API_URL}?id=${encodeURIComponent(storyId)}`);
+                const response = await fetch(`${STORY_CONTENT_API_URL}?id=${encodeURIComponent(stripFileExtension(storyId))}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.error || `Network response was not ok (status: ${response.status})`);
@@ -390,7 +403,7 @@
             
             try {
                 const userId = getUserId();
-                const response = await fetch(`${ANNOTATIONS_API_URL}?userId=${userId}&storyId=${encodeURIComponent(storyId)}`);
+                const response = await fetch(`${ANNOTATIONS_API_URL}?userId=${userId}&storyId=${encodeURIComponent(stripFileExtension(storyId))}`);
                 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
@@ -721,9 +734,9 @@
                 <form id="prompt-form" class="bg-white dark:bg-charcoal p-6 rounded-lg shadow-xl w-full max-w-sm">
                     <label class="block text-lg text-charcoal dark:text-warm-cream mb-4" for="prompt-input">${message}</label>
                     <textarea id="prompt-input" rows="3" class="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-charcoal dark:text-warm-cream border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-deep-purple focus:outline-none"></textarea>
-                    <div class="flex justify-end space-x-3 mt-6">
+                    <div class="flex justify-end mt-6">
                         <button type="button" id="prompt-cancel" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Cancel</button>
-                        <button type="submit" id="prompt-submit" class="px-4 py-2 rounded-lg bg-deep-purple text-white hover:bg-deep-purple/80 transition-colors">Save</button>
+                        <button type="submit" id="prompt-submit" class="inline-block ml-3 z-10 px-4 py-2 rounded-lg bg-deep-purple text-white hover:bg-deep-purple/80 transition-colors">Save</button>
                     </div>
                 </form>
             `;
@@ -756,7 +769,7 @@
             showLoadingModal('Generating AI Summary...');
 
             try {
-                const response = await fetch(`${SUMMARY_API_URL}?storyId=${encodeURIComponent(storyId)}`);
+                const response = await fetch(`${SUMMARY_API_URL}?storyId=${encodeURIComponent(stripFileExtension(storyId))}`);
                 
                 const data = await response.json();
 
