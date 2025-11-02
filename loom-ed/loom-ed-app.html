@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-R">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LoomEd App - Dream Forge Labs</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -152,6 +152,21 @@
             visibility: visible !important;
         }
 
+        /* Ensure toast messages are fully visible */
+        .toast-message,
+        [class*="fixed top-5 right-5 bg-charcoal"] {
+            color: #ffffff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            background-color: #2D3748 !important;
+        }
+        .toast-message *,
+        [class*="fixed top-5 right-5 bg-charcoal"] * {
+            color: #ffffff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
         /* Skeleton Loader */
         .skeleton {
             background-color: #e0dccc;
@@ -164,6 +179,60 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+
+        /* CRITICAL: Force highlight/note backgrounds to be fully opaque */
+        span.highlight,
+        span.note-highlight,
+        .prose span.highlight,
+        .prose span.note-highlight,
+        #story-text span.highlight,
+        #story-text span.note-highlight {
+            opacity: 1 !important;
+        }
+        span.highlight {
+            background-color: rgba(255, 184, 77, 1) !important;
+        }
+        .dark span.highlight {
+            background-color: rgba(107, 79, 191, 1) !important;
+        }
+        span.note-highlight {
+            background-color: rgba(45, 191, 184, 1) !important;
+        }
+        .dark span.note-highlight {
+            background-color: rgba(255, 123, 104, 1) !important;
+        }
+
+        /* CRITICAL: Force icon visibility - highest specificity */
+        span.highlight i.fas,
+        span.note-highlight i.fas,
+        .prose span.highlight i.fas,
+        .prose span.note-highlight i.fas,
+        div.prose span.highlight i.fas,
+        div.prose span.note-highlight i.fas,
+        #story-text span.highlight i.fas,
+        #story-text span.note-highlight i.fas,
+        #story-text .prose span.highlight i.fas,
+        #story-text .prose span.note-highlight i.fas {
+            color: #EA580C !important;
+            opacity: 1 !important;
+            display: inline !important;
+            visibility: visible !important;
+            font-size: 0.875rem !important;
+            font-weight: normal !important;
+        }
+
+        /* CRITICAL: Force Save button visibility */
+        button#prompt-submit[type="submit"],
+        form#prompt-form button#prompt-submit[type="submit"] {
+            color: #ffffff !important;
+            background-color: #FF7B68 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        button#prompt-submit[type="submit"]::before,
+        button#prompt-submit[type="submit"]::after {
+            display: none !important;
         }
         
     </style>
@@ -461,7 +530,25 @@
                     throw new Error(errorData.error || `Network response was not ok (status: ${response.status})`);
                 }
                 
-                const annotations = await response.json();
+                let annotations = await response.json();
+                
+                // Normalize annotations: map highlightedText to text, and determine type if missing
+                annotations = annotations.map(annotation => {
+                    // Map highlightedText to text for consistency
+                    if (annotation.highlightedText && !annotation.text) {
+                        annotation.text = annotation.highlightedText;
+                    }
+                    // Ensure text field exists (fallback to empty string if missing)
+                    if (!annotation.text) {
+                        annotation.text = '';
+                    }
+                    // Determine type if missing (note if note field has content, otherwise highlight)
+                    if (!annotation.type) {
+                        annotation.type = (annotation.note && annotation.note.trim() !== '') ? 'note' : 'highlight';
+                    }
+                    return annotation;
+                });
+                
                 annotations.sort((a, b) => a.createdAt - b.createdAt);
                 
                 renderAnnotations(annotations);
@@ -494,18 +581,21 @@
                 div.className = 'p-3 rounded-lg bg-warm-cream/50 dark:bg-charcoal/70 border border-medium-purple/30 dark:border-deep-purple/50';
                 
                 let icon = '';
+                // Safely get text, using fallback to prevent "undefined" from displaying
+                const displayText = (item.text || item.highlightedText || '').trim();
+                
                 if (item.type === 'note') {
                     icon = '<i class="fas fa-pencil-alt text-ocean-teal dark:text-coral-pink mr-2"></i>';
                     div.innerHTML = `
                         <p class="text-sm font-semibold">${icon} Note</p>
-                        <p class="text-xs text-slate-gray dark:text-gray-400 italic my-1">"${item.text}"</p>
-                        <p class="text-sm mt-1">${item.note}</p>
+                        <p class="text-xs text-slate-gray dark:text-gray-400 italic my-1">"${displayText || 'No text available'}"</p>
+                        <p class="text-sm mt-1">${item.note || ''}</p>
                     `;
                 } else {
                     icon = '<i class="fas fa-highlighter text-golden-yellow dark:text-golden-yellow mr-2"></i>';
                      div.innerHTML = `
                         <p class="text-sm font-semibold">${icon} Highlight</p>
-                        <p class="text-xs text-slate-gray dark:text-gray-400 italic my-1">"${item.text}"</p>
+                        <p class="text-xs text-slate-gray dark:text-gray-400 italic my-1">"${displayText || 'No text available'}"</p>
                     `;
                 }
                 notesList.appendChild(div);
@@ -548,17 +638,23 @@
                 let html = p.innerHTML;
                 
                 annotations.filter(a => a.type === 'note').forEach(item => {
-                    html = html.replace(new RegExp(escapeRegExp(item.text), 'g'), 
-                        `<span class="note-highlight" title="Note: ${item.note.replace(/"/g, '&quot;')}">${item.text} <i class="fas fa-pencil-alt text-xs" style="color: #EA580C !important; opacity: 1 !important;"></i></span>`);
+                    const textToHighlight = item.text || item.highlightedText || '';
+                    if (textToHighlight && textToHighlight.trim()) {
+                        html = html.replace(new RegExp(escapeRegExp(textToHighlight), 'g'), 
+                            `<span class="note-highlight" title="Note: ${(item.note || '').replace(/"/g, '&quot;')}">${textToHighlight} <i class="fas fa-pencil-alt text-xs" style="color: #EA580C !important; opacity: 1 !important;"></i></span>`);
+                    }
                 });
                 
                 annotations.filter(a => a.type === 'highlight').forEach(item => {
-                    html = html.replace(new RegExp(escapeRegExp(item.text), 'g'), 
-                        (match) => {
-                            if (match.includes('class="note-highlight"')) return match;
-                            return `<span class="highlight">${item.text} <i class="fas fa-highlighter text-xs" style="color: #EA580C !important; opacity: 1 !important;"></i></span>`;
-                        }
-                    );
+                    const textToHighlight = item.text || item.highlightedText || '';
+                    if (textToHighlight && textToHighlight.trim()) {
+                        html = html.replace(new RegExp(escapeRegExp(textToHighlight), 'g'), 
+                            (match) => {
+                                if (match.includes('class="note-highlight"')) return match;
+                                return `<span class="highlight">${textToHighlight} <i class="fas fa-highlighter text-xs" style="color: #EA580C !important; opacity: 1 !important;"></i></span>`;
+                            }
+                        );
+                    }
                 });
                 
                 p.innerHTML = html;
@@ -635,13 +731,17 @@
             const selection = window.getSelection();
             const selectedText = selection.toString().trim();
             
-            if (selectedText.length > 0) {
+            if (selectedText.length > 0 && selection.rangeCount > 0) {
                 selectedRange = selection.getRangeAt(0);
                 const rect = selectedRange.getBoundingClientRect();
                 
-                tooltip.style.left = `${window.scrollX + rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
-                tooltip.style.top = `${window.scrollY + rect.top - tooltip.offsetHeight - 10}px`;
+                // Temporarily show tooltip to get accurate dimensions
                 tooltip.classList.remove('hidden');
+                const tooltipWidth = tooltip.offsetWidth || 200; // Fallback width
+                const tooltipHeight = tooltip.offsetHeight || 50; // Fallback height
+                
+                tooltip.style.left = `${window.scrollX + rect.left + rect.width / 2 - tooltipWidth / 2}px`;
+                tooltip.style.top = `${window.scrollY + rect.top - tooltipHeight - 10}px`;
             } else {
                 tooltip.classList.add('hidden');
             }
@@ -649,7 +749,7 @@
         
         // 4. Hide tooltip on outside click
         document.addEventListener('mousedown', (event) => {
-             if (!tooltip.contains(event.target) && !storyTextContainer.contains(event.target)) {
+             if (tooltip && !tooltip.contains(event.target) && storyTextContainer && !storyTextContainer.contains(event.target)) {
                 tooltip.classList.add('hidden');
                 window.getSelection().removeAllRanges();
                 selectedRange = null;
@@ -715,7 +815,8 @@
         function showToast(message) {
             const toast = document.createElement('div');
             // Added z-index to be sure it's on top
-            toast.className = 'fixed top-5 right-5 bg-charcoal text-white text-opacity-100 px-5 py-3 rounded-lg shadow-xl z-[1001] transition-all duration-300 translate-x-full';
+            toast.className = 'toast-message fixed top-5 right-5 bg-charcoal text-white px-5 py-3 rounded-lg shadow-xl z-[1001] transition-all duration-300 translate-x-full';
+            toast.style.cssText = 'color: #ffffff !important; opacity: 1 !important; visibility: visible !important; background-color: #2D3748 !important;';
             toast.textContent = message;
             document.body.appendChild(toast);
             
@@ -787,13 +888,22 @@
                     <textarea id="prompt-input" rows="3" class="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-charcoal dark:text-warm-cream border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-deep-purple focus:outline-none"></textarea>
                     <div class="flex justify-end gap-3 mt-6">
                         <button type="button" id="prompt-cancel" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors text-charcoal dark:text-warm-cream font-medium">Cancel</button>
-                        <button type="submit" id="prompt-submit" class="px-4 py-2 rounded-lg bg-coral-pink dark:bg-coral-pink text-white hover:bg-coral-pink/90 transition-colors font-semibold shadow-lg shadow-coral-pink/30" style="color: #ffffff !important; opacity: 1 !important;">Save</button>
+                        <button type="submit" id="prompt-submit" class="px-4 py-2 rounded-lg font-semibold shadow-lg transition-colors" style="background-color: #FF7B68 !important; color: #ffffff !important; opacity: 1 !important; visibility: visible !important;">Save</button>
                     </div>
                 </form>
             `;
             
             document.body.appendChild(promptOverlay);
             const input = document.getElementById('prompt-input');
+            const submitBtn = document.getElementById('prompt-submit');
+            
+            // Explicitly ensure button text and styles are set
+            submitBtn.textContent = 'Save';
+            submitBtn.style.backgroundColor = '#FF7B68';
+            submitBtn.style.color = '#ffffff';
+            submitBtn.style.opacity = '1';
+            submitBtn.style.visibility = 'visible';
+            
             input.focus();
 
             document.getElementById('prompt-form').onsubmit = (e) => {
@@ -915,7 +1025,7 @@
             modalOverlay.innerHTML = `
                 <div class="bg-white dark:bg-charcoal p-6 rounded-lg shadow-xl w-full max-w-md" id="info-modal-content">
                     <h3 class="text-xl font-display font-bold text-deep-purple dark:text-warm-cream mb-4">${title}</h3>
-                    <div classa="text-charcoal dark:text-warm-cream max-h-[60vh] overflow-y-auto pr-2">
+                    <div class="text-charcoal dark:text-warm-cream max-h-[60vh] overflow-y-auto pr-2">
                         ${formattedMessage}
                     </div>
                     <div class="flex justify-end space-x-3 mt-6">
@@ -940,7 +1050,7 @@
                  // Check if click is on the overlay itself, not the content
                  if (e.target.id === 'info-modal-overlay') {
                      closeBtn.click();
-                 }x
+                 }
             };
         }
 
@@ -967,7 +1077,15 @@
             }
         };
 
+        // Initialize theme icons on page load
         const isCurrentlyDark = document.documentElement.classList.contains('dark');
+        if (isCurrentlyDark && lightIcon && darkIcon) {
+            lightIcon.classList.remove('hidden');
+            darkIcon.classList.add('hidden');
+        } else if (!isCurrentlyDark && lightIcon && darkIcon) {
+            darkIcon.classList.remove('hidden');
+            lightIcon.classList.add('hidden');
+        }
         setTheme(isCurrentlyDark);
 
         if (themeToggleButton) {
