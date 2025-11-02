@@ -69,6 +69,31 @@
         .dark .highlight:hover {
             background-color: rgba(107, 79, 191, 1);
         }
+        /* Force highlight icons to be fully opaque - override prose styles */
+        .highlight i,
+        .highlight i.fas,
+        .highlight i.fa-highlighter,
+        .prose .highlight i,
+        .prose .highlight i.fas,
+        .prose-dark .highlight i,
+        .prose-dark .highlight i.fas {
+            opacity: 1 !important;
+            color: #EA580C !important;
+            display: inline !important;
+            visibility: visible !important;
+            font-size: 0.875rem !important;
+        }
+        .dark .highlight i,
+        .dark .highlight i.fas,
+        .dark .highlight i.fa-highlighter,
+        .dark .prose .highlight i,
+        .dark .prose .highlight i.fas {
+            opacity: 1 !important;
+            color: #EA580C !important;
+            display: inline !important;
+            visibility: visible !important;
+            font-size: 0.875rem !important;
+        }
         
         /* Note Styling */
         .note-highlight {
@@ -86,6 +111,45 @@
         }
         .dark .note-highlight:hover {
              background-color: rgba(255, 123, 104, 1);
+        }
+        /* Force note icons to be fully opaque - override prose styles */
+        .note-highlight i,
+        .note-highlight i.fas,
+        .note-highlight i.fa-pencil-alt,
+        .prose .note-highlight i,
+        .prose .note-highlight i.fas,
+        .prose-dark .note-highlight i,
+        .prose-dark .note-highlight i.fas {
+            opacity: 1 !important;
+            color: #EA580C !important;
+            display: inline !important;
+            visibility: visible !important;
+            font-size: 0.875rem !important;
+        }
+        .dark .note-highlight i,
+        .dark .note-highlight i.fas,
+        .dark .note-highlight i.fa-pencil-alt,
+        .dark .prose .note-highlight i,
+        .dark .prose .note-highlight i.fas {
+            opacity: 1 !important;
+            color: #EA580C !important;
+            display: inline !important;
+            visibility: visible !important;
+            font-size: 0.875rem !important;
+        }
+
+        /* Ensure Save button text is always visible */
+        #prompt-submit,
+        button#prompt-submit {
+            color: #ffffff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        #prompt-submit *,
+        button#prompt-submit * {
+            color: #ffffff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
 
         /* Skeleton Loader */
@@ -722,8 +786,8 @@
                     <label class="block text-lg text-charcoal dark:text-warm-cream mb-4" for="prompt-input">${message}</label>
                     <textarea id="prompt-input" rows="3" class="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-charcoal dark:text-warm-cream border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-deep-purple focus:outline-none"></textarea>
                     <div class="flex justify-end gap-3 mt-6">
-                        <button type="button" id="prompt-cancel" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors text-charcoal dark:text-warm-cream">Cancel</button>
-                        <button type="submit" id="prompt-submit" class="px-4 py-2 rounded-lg bg-deep-purple text-white hover:bg-deep-purple/80 transition-colors font-semibold shadow-lg shadow-deep-purple/30">Save</button>
+                        <button type="button" id="prompt-cancel" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors text-charcoal dark:text-warm-cream font-medium">Cancel</button>
+                        <button type="submit" id="prompt-submit" class="px-4 py-2 rounded-lg bg-coral-pink dark:bg-coral-pink text-white hover:bg-coral-pink/90 transition-colors font-semibold shadow-lg shadow-coral-pink/30" style="color: #ffffff !important; opacity: 1 !important;">Save</button>
                     </div>
                 </form>
             `;
