@@ -237,19 +237,6 @@
             return userId;
         }
 
-        /**
-         * Strips the file extension from a filename.
-         * @param {string} filename - The filename to process.
-         * @returns {string} The filename without its extension.
-         */
-        function stripFileExtension(filename) {
-            const lastDotIndex = filename.lastIndexOf('.');
-            if (lastDotIndex === -1) {
-                return filename; // No extension found
-            }
-            return filename.substring(0, lastDotIndex);
-        }
-
         // --- API & Data Functions ---
 
         /**
@@ -322,7 +309,7 @@
                 const button = document.createElement('button');
                 button.className = 'block w-full text-left px-4 py-2 rounded-lg text-deep-purple dark:text-gray-300 hover:bg-warm-cream dark:hover:bg-charcoal/70 transition-colors';
                 button.textContent = story.title;
-                button.dataset.storyId = stripFileExtension(story.id);
+                button.dataset.storyId = story.id;
                 button.onclick = () => {
                     if (activeStoryButton) {
                         activeStoryButton.classList.remove('bg-warm-cream', 'dark:bg-charcoal/70', 'font-semibold');
@@ -403,7 +390,7 @@
             
             try {
                 const userId = getUserId();
-                const response = await fetch(`${ANNOTATIONS_API_URL}?userId=${userId}&storyId=${encodeURIComponent(stripFileExtension(storyId))}`);
+                const response = await fetch(`${ANNOTATIONS_API_URL}?userId=${userId}&storyId=${encodeURIComponent(storyId)}`);
                 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
@@ -498,14 +485,14 @@
                 
                 annotations.filter(a => a.type === 'note').forEach(item => {
                     html = html.replace(new RegExp(escapeRegExp(item.text), 'g'), 
-                        `<span class="note-highlight" title="Note: ${item.note.replace(/"/g, '&quot;')}">${item.text}</span>`);
+                        `<span class="note-highlight" title="Note: ${item.note.replace(/"/g, '&quot;')}">${item.text} <i class="fas fa-pencil-alt text-ocean-teal dark:text-coral-pink text-xs text-opacity-100"></i></span>`);
                 });
                 
                 annotations.filter(a => a.type === 'highlight').forEach(item => {
                     html = html.replace(new RegExp(escapeRegExp(item.text), 'g'), 
                         (match) => {
                             if (match.includes('class="note-highlight"')) return match;
-                            return `<span class="highlight">${item.text}</span>`;
+                            return `<span class="highlight">${item.text} <i class="fas fa-highlighter text-golden-yellow dark:text-deep-purple text-xs text-opacity-100"></i></span>`;
                         }
                     );
                 });
@@ -769,7 +756,7 @@
             showLoadingModal('Generating AI Summary...');
 
             try {
-                const response = await fetch(`${SUMMARY_API_URL}?storyId=${encodeURIComponent(stripFileExtension(storyId))}`);
+                const response = await fetch(`${SUMMARY_API_URL}?storyId=${encodeURIComponent(storyId)}`);
                 
                 const data = await response.json();
 
