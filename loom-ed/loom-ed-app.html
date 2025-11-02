@@ -438,7 +438,7 @@
                         <p class="text-sm mt-1">${item.note}</p>
                     `;
                 } else {
-                    icon = '<i class="fas fa-highlighter text-golden-yellow dark:text-deep-purple mr-2"></i>';
+                    icon = '<i class="fas fa-highlighter text-golden-yellow dark:text-golden-yellow mr-2"></i>';
                      div.innerHTML = `
                         <p class="text-sm font-semibold">${icon} Highlight</p>
                         <p class="text-xs text-slate-gray dark:text-gray-400 italic my-1">"${item.text}"</p>
@@ -485,14 +485,14 @@
                 
                 annotations.filter(a => a.type === 'note').forEach(item => {
                     html = html.replace(new RegExp(escapeRegExp(item.text), 'g'), 
-                        `<span class="note-highlight" title="Note: ${item.note.replace(/"/g, '&quot;')}">${item.text} <i class="fas fa-pencil-alt text-ocean-teal dark:text-coral-pink text-xs text-opacity-100"></i></span>`);
+                        `<span class="note-highlight" title="Note: ${item.note.replace(/"/g, '&quot;')}">${item.text} <i class="fas fa-pencil-alt text-golden-yellow dark:text-golden-yellow text-xs text-opacity-100"></i></span>`);
                 });
                 
                 annotations.filter(a => a.type === 'highlight').forEach(item => {
                     html = html.replace(new RegExp(escapeRegExp(item.text), 'g'), 
                         (match) => {
                             if (match.includes('class="note-highlight"')) return match;
-                            return `<span class="highlight">${item.text} <i class="fas fa-highlighter text-golden-yellow dark:text-deep-purple text-xs text-opacity-100"></i></span>`;
+                            return `<span class="highlight">${item.text} <i class="fas fa-highlighter text-golden-yellow dark:text-golden-yellow text-xs text-opacity-100"></i></span>`;
                         }
                     );
                 });
