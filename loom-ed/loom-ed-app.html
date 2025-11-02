@@ -198,7 +198,7 @@
         // --- Configuration ---
         const API_BASE_URL = 'https://ze6ud84gyb.execute-api.us-east-2.amazonaws.com/Prod';
         const STORIES_API_URL = `${API_BASE_URL}/stories`;
-        const STORY_CONTENT_API_URL = `${API_BASE_URL}/story`; // Updated to /story from /stories
+        const STORY_CONTENT_API_URL = `${API_BASE_URL}/story`;
         const ANNOTATIONS_API_URL = `${API_BASE_URL}/annotations`;
         // NEW: Add the Summary API URL
         const SUMMARY_API_URL = `${API_BASE_URL}/summary`;
@@ -358,7 +358,7 @@
 
             try {
                 // Fetch story content
-                const response = await fetch(`${STORY_CONTENT_API_URL}?id=${encodeURIComponent(stripFileExtension(storyId))}`);
+                const response = await fetch(`${STORY_CONTENT_API_URL}?id=${encodeURIComponent(storyId)}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.error || `Network response was not ok (status: ${response.status})`);
